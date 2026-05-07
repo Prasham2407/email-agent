@@ -1,0 +1,7 @@
+node_modules/
+.env
+*.log
+emailStore.json
+processed.json
+.DS_Store
+package-lock.json
