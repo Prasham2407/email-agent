@@ -1,17 +1,44 @@
-const axios = require("axios");
+require("dotenv").config();
+const { google } = require("googleapis");
+const readline = require("readline");
 
-const code = "4/0AeoWuM95JktjQcRwy_BvvXU1kumkhebJMqlrTPCXoLWkKfzdVMx_7q3eaIXP_BMDfWrvNw";
+const oauth2Client = new google.auth.OAuth2(
+  process.env.CLIENT_ID,
+  process.env.CLIENT_SECRET,
+  "http://localhost:3000" // Make sure this matches the Redirect URI in Google Cloud Console
+);
 
-async function getToken() {
-  const res = await axios.post("https://oauth2.googleapis.com/token", {
-    code,
-    client_id: process.env.CLIENT_ID,
-    client_secret: process.env.CLIENT_SECRET,
-    redirect_uri: "http://localhost:3000",
-    grant_type: "authorization_code",
+// We ONLY request gmail.modify scope.
+const SCOPES = ["https://www.googleapis.com/auth/gmail.modify"];
+
+async function getNewToken() {
+  const authUrl = oauth2Client.generateAuthUrl({
+    access_type: "offline",
+    scope: SCOPES,
+    prompt: "consent" // Forces Google to show the consent screen and return a refresh_token
   });
 
-  console.log(res.data);
+  console.log("1. Open this URL in your browser:\n");
+  console.log(authUrl);
+  console.log("\n------------------------------------------------------------");
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  rl.question("2. After authorizing, copy the 'code=...' value from the address bar URL and paste it here: ", async (code) => {
+    rl.close();
+    try {
+      // Decode the code if it was copied with URL-encoding
+      const decodedCode = decodeURIComponent(code.trim());
+      const { tokens } = await oauth2Client.getToken(decodedCode);
+      console.log("\nSUCCESS! Copy the following REFRESH_TOKEN into your .env file:\n");
+      console.log(`REFRESH_TOKEN=${tokens.refresh_token}`);
+    } catch (err) {
+      console.error("\nError exchanging code for token:", err.message);
+    }
+  });
 }
 
-getToken();
+getNewToken();

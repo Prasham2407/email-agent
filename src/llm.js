@@ -18,7 +18,7 @@ Return STRICT JSON format:
   "isRelevant": true or false,
   "category": "Job Application" or "Client Message" or "Other",
   "summary": "Detailed summary in bullet points about the email body",
-  "attachments_summary": "If present, a 300-word max summary of what the attachments contain. If none, leave empty string."
+  "attachments_summary": "If present, a detailed summary of the attachments structured as bullet points (not a paragraph). If none, leave empty string."
 }`
           },
           { role: "user", content: text }

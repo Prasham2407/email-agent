@@ -21,6 +21,15 @@ function saveToMemoryMap(messageId, payloadData) {
   }
 }
 
+// Helper to escape HTML characters in dynamic user/email data
+function escapeHTML(str) {
+  if (!str) return "";
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 bot.on("message", async (msg) => {
   // If not replying to a bot message, ignore it
   if (!msg.reply_to_message) return;
@@ -47,8 +56,8 @@ bot.on("message", async (msg) => {
 
     const draftMsg = await bot.sendMessage(
       msg.chat.id,
-      `📝 **Draft Generated:**\n\n\`\`\`\n${draftText}\n\`\`\`\n\n*Reply with 'Yes' to send it, or provide new instructions to edit.*`,
-      { parse_mode: "Markdown" }
+      `📝 <b>Draft Generated:</b>\n\n<pre>${escapeHTML(draftText)}</pre>\n\n<i>Reply with 'Yes' to send it, or provide new instructions to edit.</i>`,
+      { parse_mode: "HTML" }
     );
 
     // Save draft context waiting for final "Yes" explicitly linked to the draft message bubble
@@ -75,14 +84,14 @@ bot.on("message", async (msg) => {
           contextData.emailDetails.referencesHeader
         );
 
-        await bot.editMessageText("✅ **Replied Successfully!**", {
+        await bot.editMessageText("✅ <b>Replied Successfully!</b>", {
           chat_id: msg.chat.id,
           message_id: loaderMsg.message_id,
-          parse_mode: "Markdown"
+          parse_mode: "HTML"
         });
 
       } catch (err) {
-        await bot.editMessageText(`❌ Failed to send: ${err.message}`, {
+        await bot.editMessageText(`❌ Failed to send: ${escapeHTML(err.message)}`, {
           chat_id: msg.chat.id,
           message_id: loaderMsg.message_id
         });
@@ -99,8 +108,8 @@ bot.on("message", async (msg) => {
 
       const draftMsg = await bot.sendMessage(
         msg.chat.id,
-        `📝 **Revised Draft:**\n\n\`\`\`\n${newDraftText}\n\`\`\`\n\n*Reply with 'Yes' to send it, or provide new instructions.*`,
-        { parse_mode: "Markdown" }
+        `📝 <b>Revised Draft:</b>\n\n<pre>${escapeHTML(newDraftText)}</pre>\n\n<i>Reply with 'Yes' to send it, or provide new instructions.</i>`,
+        { parse_mode: "HTML" }
       );
 
       saveToMemoryMap(draftMsg.message_id, {
@@ -112,24 +121,28 @@ bot.on("message", async (msg) => {
 });
 
 async function sendSummaryToTelegram(emailDetails) {
+  const category = escapeHTML(emailDetails.category);
+  const sender = escapeHTML(emailDetails.sender);
+  const subject = escapeHTML(emailDetails.subject);
+  const summary = escapeHTML(emailDetails.summary);
   const attachmentsBlock = emailDetails.attachments_summary
-    ? `\n📎 **Attachments:**\n${emailDetails.attachments_summary}`
+    ? `\n📎 <b>Attachments:</b>\n${escapeHTML(emailDetails.attachments_summary)}`
     : "";
 
   const textToClient = `
-📧 **${emailDetails.category}**
+📧 <b>${category}</b>
 
-👤 **From:** ${emailDetails.sender}
-📑 **Subject:** ${emailDetails.subject}
+👤 <b>From:</b> ${sender}
+📑 <b>Subject:</b> ${subject}
 
-📝 **Summary:**
-${emailDetails.summary}${attachmentsBlock}
+📝 <b>Summary:</b>
+${summary}${attachmentsBlock}
 
-*(Reply to this message with instructions to draft a response)*
+<i>(Reply to this message with instructions to draft a response)</i>
   `.trim();
 
   const msg = await bot.sendMessage(process.env.CHAT_ID, textToClient, {
-    parse_mode: "Markdown"
+    parse_mode: "HTML"
   });
 
   saveToMemoryMap(msg.message_id, {
