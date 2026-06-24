@@ -286,11 +286,33 @@ async function sendSummaryToTelegram(emailDetails) {
   const sender = escapeHTML(emailDetails.sender);
   const subject = escapeHTML(emailDetails.subject);
   
-  const name = escapeHTML(emailDetails.name || "Not mentioned");
-  const totalExperience = escapeHTML(emailDetails.total_experience || "Not mentioned");
-  const currentCompany = escapeHTML(emailDetails.current_company || "Not mentioned");
-  const education = escapeHTML(emailDetails.education || "Not mentioned");
-  const primarySkills = escapeHTML(emailDetails.primary_skills || "Not mentioned");
+  const name = escapeHTML(emailDetails.name || emailDetails.Name || "Not mentioned");
+  const totalExperience = escapeHTML(
+    emailDetails.total_experience || 
+    emailDetails.totalExperience || 
+    emailDetails["Total Experience"] || 
+    emailDetails["total experience"] || 
+    "Not mentioned"
+  );
+  const currentCompany = escapeHTML(
+    emailDetails.current_company || 
+    emailDetails.currentCompany || 
+    emailDetails["Current Company"] || 
+    emailDetails["current company"] || 
+    "Not mentioned"
+  );
+  const education = escapeHTML(
+    emailDetails.education || 
+    emailDetails.Education || 
+    "Not mentioned"
+  );
+  const primarySkills = escapeHTML(
+    emailDetails.primary_skills || 
+    emailDetails.primarySkills || 
+    emailDetails["Primary Skills"] || 
+    emailDetails["primary skills"] || 
+    "Not mentioned"
+  );
   
   const summary = escapeHTML(emailDetails.summary);
   const attachmentsBlock = emailDetails.attachments_summary
