@@ -286,37 +286,9 @@ async function sendSummaryToTelegram(emailDetails) {
   const sender = escapeHTML(emailDetails.sender);
   const subject = escapeHTML(emailDetails.subject);
   
-  const name = escapeHTML(emailDetails.name || emailDetails.Name || "Not mentioned");
-  const totalExperience = escapeHTML(
-    emailDetails.total_experience || 
-    emailDetails.totalExperience || 
-    emailDetails["Total Experience"] || 
-    emailDetails["total experience"] || 
-    "Not mentioned"
-  );
-  const currentCompany = escapeHTML(
-    emailDetails.current_company || 
-    emailDetails.currentCompany || 
-    emailDetails["Current Company"] || 
-    emailDetails["current company"] || 
-    "Not mentioned"
-  );
-  const education = escapeHTML(
-    emailDetails.education || 
-    emailDetails.Education || 
-    "Not mentioned"
-  );
-  const primarySkills = escapeHTML(
-    emailDetails.primary_skills || 
-    emailDetails.primarySkills || 
-    emailDetails["Primary Skills"] || 
-    emailDetails["primary skills"] || 
-    "Not mentioned"
-  );
-  
   const summary = escapeHTML(emailDetails.summary);
   const attachmentsBlock = emailDetails.attachments_summary
-    ? `\n\n📎 <b>Attachments:</b>\n${escapeHTML(emailDetails.attachments_summary)}`
+    ? `\n📎 <b>Attachments:</b>\n${escapeHTML(emailDetails.attachments_summary)}`
     : "";
 
   const textToClient = `
@@ -324,13 +296,6 @@ async function sendSummaryToTelegram(emailDetails) {
 
 👤 <b>From:</b> ${sender}
 📑 <b>Subject:</b> ${subject}
-
-💼 <b>Candidate Profile:</b>
-• <b>Name:</b> ${name}
-• <b>Total Experience:</b> ${totalExperience}
-• <b>Current Company:</b> ${currentCompany}
-• <b>Education:</b> ${education}
-• <b>Primary Skills:</b> ${primarySkills}
 
 📝 <b>Summary:</b>
 ${summary}${attachmentsBlock}
