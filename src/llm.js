@@ -6,7 +6,7 @@ async function analyzeEmail(text) {
       "https://openrouter.ai/api/v1/chat/completions",
       {
         // Using deepseek as it is very cheap, but you can swap to mistral or gpt-4o-mini
-        model: "nvidia/nemotron-3-super-120b-a12b:free",
+        model: process.env.OPENROUTER_MODEL || "qwen/qwen-2.5-72b-instruct",
         messages: [
           {
             role: "system",
@@ -17,8 +17,13 @@ Return STRICT JSON format:
 {
   "isRelevant": true or false,
   "category": "Job Application" or "Client Message" or "Other",
-  "summary": "Detailed summary in bullet points about the email body",
-  "attachments_summary": "If present, a detailed summary of the attachments structured as bullet points (not a paragraph). If none, leave empty string."
+  "name": "Candidate's full name (if mentioned, otherwise 'Not mentioned')",
+  "total_experience": "Briefly state total experience if mentioned (e.g. '3 years', 'Fresher', 'Not mentioned')",
+  "current_company": "Briefly state current company name if mentioned (e.g. 'Infosys', 'Freelance', 'Not mentioned')",
+  "education": "Highest degree and college (e.g. 'B.Tech IT, Hindustan College', 'Not mentioned')",
+  "primary_skills": "Top 3-5 keywords/technologies separated by commas (e.g. 'Python, React.js, AWS', 'Not mentioned')",
+  "summary": "Detailed summary structured as bullet points (using bullet character •) about the email body",
+  "attachments_summary": "If present, a detailed summary of the attachments structured as bullet points (using bullet character •). If none, leave empty string."
 }`
           },
           { role: "user", content: text }
@@ -46,11 +51,11 @@ async function generateDraft(emailContext, userInstruction) {
     const res = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
-        model: "nvidia/nemotron-3-super-120b-a12b:free",
+        model: process.env.OPENROUTER_MODEL || "qwen/qwen-2.5-72b-instruct",
         messages: [
           {
             role: "system",
-            content: "You are an AI assistant drafting professional email replies. Draft the reply strictly based on the user's instructions and the original email context. Return ONLY the drafted text of the reply. Do not include introductory notes."
+            content: "You are an AI assistant drafting professional email replies. Draft the reply strictly based on the user's instructions and the original email context. Ensure standard professional formatting, including proper spacing (e.g., 'Dear Deepak,' with spaces), paragraphs, and line breaks. Return ONLY the drafted text of the reply. Do not include introductory notes."
           },
           { 
             role: "user", 
