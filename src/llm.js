@@ -17,13 +17,13 @@ Return STRICT JSON format:
 {
   "isRelevant": true or false,
   "category": "Job Application" or "Client Message" or "Other",
-  "name": "Candidate's full name (if mentioned, otherwise 'Not mentioned')",
-  "total_experience": "Briefly state total experience if mentioned (e.g. '3 years', 'Fresher', 'Not mentioned')",
-  "current_company": "Briefly state current company name if mentioned (e.g. 'Infosys', 'Freelance', 'Not mentioned')",
-  "education": "Highest degree and college (e.g. 'B.Tech IT, Hindustan College', 'Not mentioned')",
-  "primary_skills": "Top 3-5 keywords/technologies separated by commas (e.g. 'Python, React.js, AWS', 'Not mentioned')",
-  "summary": "Detailed summary structured as bullet points (using bullet character •) about the email body",
-  "attachments_summary": "If present, a detailed summary of the attachments structured as bullet points (using bullet character •). If none, leave empty string."
+  "name": "Candidate's full name. Look in the subject line, email address, body, or signature (do not default to 'Not mentioned' if you can find it)",
+  "total_experience": "Infer total experience. If they worked since a specific date (e.g. 2016), calculate years of experience relative to 2026 (e.g. '10 years')",
+  "current_company": "Current or most recent company name. Look in body and attachments.",
+  "education": "Highest degree and college. Look in body and attachments.",
+  "primary_skills": "Top 3-5 keywords/technologies separated by commas.",
+  "summary": "Detailed summary structured as bullet points. You MUST separate each bullet point with a newline character (\\n).",
+  "attachments_summary": "If present, extract and summarize the detailed content of the attachments (such as specific education degrees/colleges, concrete projects built and their descriptions, full technical skills listed, and detailed employment history with roles/dates). Do NOT write overview descriptions like 'Includes education section' or 'lists projects'; instead, write the actual projects, skills, and education details. Structure as a detailed bullet-pointed list, separating each bullet point with a newline (\\n). If none, leave empty string."
 }`
           },
           { role: "user", content: text }
