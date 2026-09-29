@@ -1,0 +1,1905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Job Application Rankings</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 20px; background: #f8fafc; color: #0f172a; }
+  h1 { margin-bottom: 4px; }
+  .muted { color: #64748b; font-size: 0.85em; }
+  .jd-box { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; margin: 12px 0 20px; max-height: 200px; overflow-y: auto; white-space: pre-wrap; font-size: 0.9em; }
+  .controls { display: flex; gap: 16px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+  .controls label { font-size: 0.9em; }
+  input[type="range"] { width: 200px; }
+  table { border-collapse: collapse; width: 100%; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  th, td { border: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; vertical-align: top; font-size: 0.9em; }
+  th { background: #1e293b; color: #fff; position: sticky; top: 0; }
+  tr:nth-child(even) { background: #f1f5f9; }
+  .score-badge { color: #fff; padding: 3px 10px; border-radius: 12px; font-weight: 600; }
+  .detail-block { max-width: 500px; }
+  .detail-block ul { margin: 4px 0; padding-left: 18px; }
+  details summary { cursor: pointer; color: #2563eb; }
+  .stats { margin: 8px 0; color: #475569; font-size: 0.9em; }
+  .draft-btn { background: #2563eb; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.85em; }
+  .draft-btn:hover { background: #1d4ed8; }
+  .draft-btn:disabled { background: #94a3b8; cursor: not-allowed; }
+  .draft-btn.sent { background: #16a34a; }
+
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: flex-start; padding-top: 40px; }
+  .modal-overlay.active { display: flex; }
+  .modal { background: #fff; border-radius: 12px; padding: 24px; max-width: 700px; width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+  .modal h2 { margin: 0 0 4px; }
+  .modal .modal-info { color: #64748b; font-size: 0.9em; margin-bottom: 16px; }
+  .modal textarea { width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-family: inherit; font-size: 0.9em; resize: vertical; }
+  .modal textarea.instructions { min-height: 80px; margin-bottom: 12px; }
+  .modal textarea.draft-preview { min-height: 200px; margin-bottom: 12px; font-family: monospace; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+  .modal-actions button { padding: 8px 18px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9em; }
+  .btn-generate { background: #2563eb; color: #fff; }
+  .btn-generate:hover { background: #1d4ed8; }
+  .btn-send { background: #16a34a; color: #fff; }
+  .btn-send:hover { background: #15803d; }
+  .btn-cancel { background: #e2e8f0; color: #0f172a; }
+  .btn-cancel:hover { background: #cbd5e1; }
+  .btn-loading { opacity: 0.6; pointer-events: none; }
+  .status-msg { font-size: 0.85em; margin: 8px 0; padding: 6px 10px; border-radius: 4px; }
+  .status-msg.info { background: #dbeafe; color: #1e40af; }
+  .status-msg.error { background: #fee2e2; color: #991b1b; }
+  .status-msg.success { background: #dcfce7; color: #166534; }
+</style>
+</head>
+<body>
+<h1>Job Application Rankings</h1>
+<div class="stats">44 candidate(s) scored against the provided JD.</div>
+
+<h3>Job Description</h3>
+<div class="jd-box">php, laravel, full stack, developement, frontend developement, backend developement, sql, psql, postgres, database, ai tools</div>
+
+<div class="controls">
+  <label>Min score: <span id="scoreVal">0</span>
+    <input type="range" id="scoreFilter" min="0" max="100" value="0">
+  </label>
+  <label>Search: <input type="text" id="searchFilter" placeholder="name or skill..."></label>
+  <label>Sort:
+    <select id="sortBy">
+      <option value="score">Score (high to low)</option>
+      <option value="exp">Experience (high to low)</option>
+      <option value="name">Name (A to Z)</option>
+    </select>
+  </label>
+  <span class="muted" id="visibleCount"></span>
+</div>
+
+<table id="rankTable">
+  <thead>
+    <tr>
+      <th>#</th><th>Candidate</th><th>Subject</th><th>Total Exp</th><th>Current Salary</th><th>Expected Salary</th><th>Score</th><th>Role Fit</th><th>Details</th><th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr data-score="90" data-name="shayan zulfiqar" data-skills="react, node.js, javascript, php, python" data-exp="5" data-cid="1a0ebeb96b2e532d">
+        <td>1</td>
+        <td><strong>Shayan Zulfiqar</strong><br><span class="muted">Hub Microo &lt;hubmicroo@gmail.com&gt;</span></td>
+        <td>Application for the Full Stack Developer</td>
+        <td>5 years</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#16a34a">90</span></td>
+        <td>Mid-level Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> React, Node.js, JavaScript, PHP, Python</p>
+              <p><strong>Current Company:</strong> CODESINC</p>
+              <p><strong>Education:</strong> SOFTWARE ENGINEERING, The Islamia University of Bahawalpur</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has experience with PHP and Laravel, which are essential for the role.</li><li>Demonstrates full stack development experience and familiarity with frontend and backend technologies.</li><li>SQL knowledge is mentioned, aligning with the database requirements in the JD.</li><li>Experienced in developing web applications and integrating APIs, which fits the JD&#39;s focus on development.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>No mention of Postgres specifically, only SQL/NoSQL.</li><li>Less emphasis on AI tools, though familiar with AI-assisted workflows.</li></ul>
+              <p><strong>Summary:</strong> I am writing to express my interest in the Full Stack Developer position.
+Technical background includes React, Next.js, JavaScript, TypeScript, Node.js, Express.js, PHP, Laravel, Python, REST APIs, SQL/NoSQL databases, and Git/GitHub.
+Experience developing full-stack web applications, building responsive user interfaces, and integrating APIs.
+Familiar with AI/LLM-oriented development and AI-assisted coding workflows.
+Eager to contribute to real-world products and take ownership of assigned tasks.</p>
+              <p><strong>Attachments:</strong> Shayan&#39;s Resume:
+- Full-stack Web Developer with experience in building modern, scalable digital solutions.
+- Proficient in the MERN stack (MongoDB, Express.js, React.js, Node.js).
+- Developed Biznet Real Estate platform with React.js frontend and Laravel backend.
+- Created &#39;Done Right Design&#39; application using the MERN stack.
+- Led frontend migration projects from HTML/CSS to React.
+- Developed and launched multiple responsive web applications across various sectors including construction and pet care, emphasizing modern UI design and secure API integration.
+- Education: Software Engineering from The Islamia University of Bahawalpur.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0ebeb96b2e532d" data-name="Shayan Zulfiqar">Draft Reply</button></td>
+      </tr>
+      <tr data-score="85" data-name="sajjad hussain" data-skills="node.js, php, laravel, react.js, mongodb" data-exp="10" data-cid="1a0ecad044633a9b">
+        <td>2</td>
+        <td><strong>Sajjad Hussain</strong><br><span class="muted">Sajjad Hussain &lt;husaainsajjad158@gmail.com&gt;</span></td>
+        <td>Full Stack Developer</td>
+        <td>10 years</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#16a34a">85</span></td>
+        <td>Senior Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> Node.js, PHP, Laravel, React.js, MongoDB</p>
+              <p><strong>Current Company:</strong> Yuniro SRL</p>
+              <p><strong>Education:</strong> Bachelor of Science in Computer Science, University of the Punjab</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has PHP and Laravel expertise as required in the JD.</li><li>Experience in full stack development aligns with the job&#39;s requirements.</li><li>Hands-on experience with AI tools which is mentioned in the JD.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>No mention of SQL, PSQL, or Postgres in the skill set or experience.</li></ul>
+              <p><strong>Summary:</strong> • Interested in Full Stack Developer position
+• 10 years of professional software development experience
+• Strong expertise in frontend and backend development, APIs, databases, cloud technologies, and modern web applications
+• Hands-on experience using AI tools such as GitHub Copilot, Claude, Cursor, and OpenAI APIs
+• Based in Lahore, Pakistan, available for full-time remote position, can join immediately</p>
+              <p><strong>Attachments:</strong> • Senior Full Stack Engineer with over 6 years of experience in building scalable, high-performance web applications
+• Key projects include: 
+  - Enterprise Resource Planning (ERP) Platform: Development of core ERP modules for finance, inventory, and HR
+  - AI-Driven Analytics &amp; Reporting System: REST APIs for real-time business insights
+  - Healthcare Management Platform: Secure backend architecture using Laravel for patient management and scheduling
+  - Cloud-Based IoT Monitoring System: Backend microservices and real-time data collection
+  - Customer Relationship Management (CRM) System: Modules for client interaction tracking and sales management
+  - Intelligent Document Management System: Automated document processing and validation
+• Technologies used include: Node.js, Express.js, PHP, Laravel, MERN Stack, React.js, MySQL, AWS
+• Leadership role overseeing full-stack development projects and mentoring junior engineers
+• Prior experience includes Full Stack Developer at XEPOS and Laravel Developer at Scylla Technologies</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0ecad044633a9b" data-name="Sajjad Hussain">Draft Reply</button></td>
+      </tr>
+      <tr data-score="85" data-name="mubeen mustafa" data-skills="react.js, node.js, python, php, sql/nosql databases" data-exp="6" data-cid="1a0ecabfcc4d4988">
+        <td>3</td>
+        <td><strong>Mubeen Mustafa</strong><br><span class="muted">Mubeen Mustafa &lt;mubeenmustafa304@gmail.com&gt;</span></td>
+        <td>Full Stack Developer</td>
+        <td>6 years</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#16a34a">85</span></td>
+        <td>Senior Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> React.js, Node.js, Python, PHP, SQL/NoSQL databases</p>
+              <p><strong>Current Company:</strong> Contractor Plus</p>
+              <p><strong>Education:</strong> Bachelor of Science in Computer Science (BSCS) from The Islamia University of Bahawalpur</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has 6 years of experience in software development which meets the JD experience requirement.</li><li>Candidate has PHP and Laravel experience, which are required technologies in the JD.</li><li>The candidate has experience with AI tools, aligning with one of the JD requirements.</li><li>Experience with SQL, which is mentioned in the JD.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>No mention of PostgreSQL or PSQL.</li><li>No explicit mention of frontend and backend development as separate skills.</li></ul>
+              <p><strong>Summary:</strong> Interested in the Full Stack Developer opportunity.
+6 years of professional software development experience.
+Strong hands-on expertise in React.js, Next.js, Node.js, Python, and PHP.
+Experience with AI tools in development workflows.
+Based in Lahore, Pakistan and available for a full-time remote role.</p>
+              <p><strong>Attachments:</strong> Resume with detailed experience and skills: 
+- Current Position: Senior Software Engineer at Contractor Plus (July 2024 – Present)
+- Previous Position: Senior Software Engineer at SE Software Technologies (March 2020 – April 2022)
+- Key Projects: 
+  - Teach It Pro: Educational platform with LAMP stack.
+  - Combat Exam: AI-powered examination system with LAMP stack.
+  - Nowfluence: Marketing analytics platform using React.js, Node.js, MongoDB, Golang.
+  - Contractor Plus: Contractor management platform with Laravel and React.js.
+  - Jans Invoice: Cloud-based invoicing platform using LAMP stack.
+- Skills: Proficient in JavaScript, TypeScript, Node.js, database management, API development, cloud services (AWS, Azure), CI/CD pipelines, and more.
+- Education: Bachelor of Science in Computer Science (BSCS) from The Islamia University of Bahawalpur (2016 – 2020).</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0ecabfcc4d4988" data-name="Mubeen Mustafa">Draft Reply</button></td>
+      </tr>
+      <tr data-score="85" data-name="akash patel" data-skills="react.js, next.js, node.js, php, laravel" data-exp="15" data-cid="1a0ec886dadca81a">
+        <td>4</td>
+        <td><strong>Akash Patel</strong><br><span class="muted">Akash Patel &lt;akashwebdev1989@gmail.com&gt;</span></td>
+        <td>Application for Full Stack Developer – Remote</td>
+        <td>15 years</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#16a34a">85</span></td>
+        <td>Senior Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> React.js, Next.js, Node.js, PHP, Laravel</p>
+              <p><strong>Current Company:</strong> Full Time Freelancer - Remote</p>
+              <p><strong>Education:</strong> B.E. in Computer Science from GTU University</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has PHP and Laravel skills as required by the JD.</li><li>Candidate has extensive experience in web application development with a blend of frontend and backend technologies.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>No mention of SQL or Postgres specifically.</li><li>Limited reference to database management compared to JD requirements.</li></ul>
+              <p><strong>Summary:</strong> 10+ years of experience in web application development across frontend and backend technologies.
+Proficient in using AI tools like ChatGPT and GitHub Copilot.
+Experience includes working on SaaS platforms and custom software development.
+Enjoy taking ownership of projects from concept to deployment.
+Comfortable working independently and collaborating remotely.</p>
+              <p><strong>Attachments:</strong> Proficient and Creative Website developer with 15+ years of experience in website design and development.
+Education: B.E. in Computer Science (2008 - 2012) from GTU University, with strong foundations in programming, software engineering, and modern technologies.
+Work Experience:
+- 2020 - Present: Full Time Freelancer - Remote, developed various functional websites and projects including Shopify and Laravel.
+- 2017 - 2020: Imaginovation LLC., Freelance full-time WordPress Developer, developed customized WordPress sites and plugins.
+- 2013 - 2016: WebStar Solution, Core PHP &amp; WordPress Developer, initially developed complex sites in Core PHP and learned WordPress development.
+Technical Skills: HTML5, CSS3, Bootstrap, SCSS, Tailwind, MySQL, jQuery, WordPress custom development, SEO, API integrations.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0ec886dadca81a" data-name="Akash Patel">Draft Reply</button></td>
+      </tr>
+      <tr data-score="82" data-name="akhtar parveen" data-skills="react.js, node.js, express.js, laravel, mongodb" data-exp="9" data-cid="1a0ecb474555dfb3">
+        <td>5</td>
+        <td><strong>Akhtar Parveen</strong><br><span class="muted">AKHTAR PARVEEN &lt;akhujapbca@gmail.com&gt;</span></td>
+        <td>Full Stack Developer</td>
+        <td>9 years</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#16a34a">82</span></td>
+        <td>Senior Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> React.js, Node.js, Express.js, Laravel, MongoDB</p>
+              <p><strong>Current Company:</strong> Saksoft Pvt Ltd</p>
+              <p><strong>Education:</strong> MCA, MCNUJC, Bhopal</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>The candidate has experience with Laravel, matching the requirement of the job description.</li><li>The candidate&#39;s experience as a Full Stack Developer aligns with the JD&#39;s focus on full stack development.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>Missing explicit experience with SQL, PSQL, or Postgres databases.</li><li>No mention of AI tools experience.</li></ul>
+              <p><strong>Summary:</strong> Senior Full Stack Developer with over 9 years of experience in designing, developing, and delivering scalable applications.
+Proven expertise in full stack development using the MERN stack and Laravel.
+Strong knowledge of system design, microservices, RESTful and GraphQL APIs.
+Hands-on experience with cloud technologies including AWS and Azure.
+Experience in leading teams and mentoring junior developers.</p>
+              <p><strong>Attachments:</strong> MCA from MCNUJC, Bhopal with 75% in 2016.
+BCA from Mastek Academy, Bhopal with 75% in 2013.
+Senior Software Engineer at Saksoft Pvt Ltd (May 2022 – April 2026) - Developed healthcare platforms.
+Senior Software Engineer at Ghrix Technologies (May 2021 - May 2022) - Full stack applications using Laravel and React.js.
+Senior Software Engineer at Amipiya TechSoft Pvt Ltd (July 2020 - December 2020) - Web applications using MERN stack.
+Software Engineer at Java R&amp;D Pvt Ltd (Nov 2019 - June 2020) - Developed scalable web applications.
+PHP Web Developer roles from 2016 to 2019, working with various technologies.
+Recent projects include development of healthcare and telemedicine platforms using React.js, AWS, and Laravel.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0ecb474555dfb3" data-name="Akhtar Parveen">Draft Reply</button></td>
+      </tr>
+      <tr data-score="75" data-name="santiago rodríguez" data-skills="react, typescript, node.js, postgresql, express" data-exp="3" data-cid="1a0ec2f36cf3a095">
+        <td>6</td>
+        <td><strong>Santiago Rodríguez</strong><br><span class="muted">&quot;Santiago Rodríguez&quot; &lt;santiagodrm@gmail.com&gt;</span></td>
+        <td>FULLSTACK DEV POSITION</td>
+        <td>3 years</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#16a34a">75</span></td>
+        <td>Mid-level Fullstack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> React, TypeScript, Node.js, PostgreSQL, Express</p>
+              <p><strong>Current Company:</strong> Autoparts Rausseo</p>
+              <p><strong>Education:</strong> IT Systems Engineer, I.U.P &#39;Santiago Mariño&#39;</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has full-stack development experience, which is required in the JD.</li><li>Candidate has experience with PostgreSQL, aligning with the database requirement.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>Missing experience with PHP and Laravel, which are explicitly mentioned in the JD.</li><li>No mention of AI tools as requested in the JD.</li></ul>
+              <p><strong>Summary:</strong> Fullstack Developer with +3 years of experience in building digital solutions
+Skilled in front-end technologies like React and TypeScript
+Experienced in back-end development using Node.js and PostgreSQL
+Proficient in REST API design and role-based authentication
+Strong background in automated testing and responsive design</p>
+              <p><strong>Attachments:</strong> Santiago Rodríguez - FullStack - EN.pdf contains detailed project descriptions and skills, including:
+
+Projects: 
+- Developed a responsive automotive-parts catalog with React 19, TypeScript, TanStack Start, and Prisma
+- Built a product catalog administration system with Better Auth, TypeScript, and Prisma
+- Developed a role-aware pharmacy management SPA using React and TypeScript
+- Created a React and TypeScript marketplace with 22 API-connected screens
+
+Skills:
+- Languages: TypeScript, JavaScript, HTML5, CSS3, SQL
+- Frontend Development: React, Next.js, Redux Toolkit, Tailwind CSS
+- Integration &amp; Testing: Vitest, Playwright, REST API, Axios
+- Backend &amp; Data: Node.js, Express.js, Prisma ORM, PostgreSQL
+- Tools: Git, Docker, AWS
+- Methodologies: Agile, Scrum, requirements analysis</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0ec2f36cf3a095" data-name="Santiago Rodríguez">Draft Reply</button></td>
+      </tr>
+      <tr data-score="70" data-name="shayan zulfiqar" data-skills="react, node.js, python, javascript, django" data-exp="5" data-cid="1a0ed1d93b00f991">
+        <td>7</td>
+        <td><strong>Shayan Zulfiqar</strong><br><span class="muted">Hub Microo &lt;hubmicroo@gmail.com&gt;</span></td>
+        <td>Application for the Full Stack Developer | Remote</td>
+        <td>5 years</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#ca8a04">70</span></td>
+        <td>Mid-level Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> React, Node.js, Python, JavaScript, Django</p>
+              <p><strong>Current Company:</strong> Codesinc</p>
+              <p><strong>Education:</strong> Bachelor&#39;s in Software Engineering, The Islamia University of Bahawalpur</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has experience in PHP and Laravel through projects, specifically in the Motor Warranty Platform.</li><li>Candidate&#39;s role as a Full Stack Developer aligns with the job description regarding frontend and backend development.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>Missing direct experience with SQL, PSQL, and Postgres as stated in the JD.</li><li>No mention of AI tools in the candidate&#39;s skills or experience.</li></ul>
+              <p><strong>Summary:</strong> Interested in the Full Stack Developer opportunity.
+Technical background includes various technologies in frontend and backend development.
+Experience in building web applications, APIs, and troubleshooting technical issues.
+Comfortable working independently and learning new technologies.
+Portfolio and GitHub links provided.</p>
+              <p><strong>Attachments:</strong> Current position as Web Developer at Codesinc, Rahim Yar Khan, Pakistan.
+Previous position as Web Developer at Hubmicro, Bahawalpur, Pakistan.
+Complete education details with a Bachelor&#39;s degree in Software Engineering from The Islamia University of Bahawalpur.
+Projects include:
+- Biznet Real Estate: Built with React.js frontend and Laravel backend, integrating REST APIs for dynamic listings.
+- Done Right Design: Full application developed using the MERN stack.
+- Serve Bizness: Led frontend migration to React and integrated Firebase.
+- Motor Warranty Platform: Frontend migration from HTML/JavaScript to React with PHP Laravel API integration.
+- GeoStations: React-based application for real-time geographical data.
+- Etihad Construction: Developed a responsive website showcasing services with API integration.
+- ERP Solution: Scalable multi-tenant ERP platform with React-based UI.
+- Petcare: Developed pet care products website using React.js and Node.js for secure API integration.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0ed1d93b00f991" data-name="Shayan Zulfiqar">Draft Reply</button></td>
+      </tr>
+      <tr data-score="70" data-name="aasif ali" data-skills="react, node.js, typescript, postgresql, mongodb" data-exp="2" data-cid="1a0ecb39dce61d05">
+        <td>8</td>
+        <td><strong>Aasif Ali</strong><br><span class="muted">Aasif Ali &lt;aasifali.dev@gmail.com&gt;</span></td>
+        <td>Application for the Fullstack developer - remote position</td>
+        <td>2 years</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#ca8a04">70</span></td>
+        <td>Junior Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> React, Node.js, TypeScript, PostgreSQL, MongoDB</p>
+              <p><strong>Current Company:</strong> Demand Curve Marketing Systems</p>
+              <p><strong>Education:</strong> B.Tech in Computer Science and Engineering, Government College of Engineering Kannur</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has 2+ years of experience in full stack development.</li><li>Candidate has experience with PostgreSQL, which is relevant to the database requirements.</li><li>Candidate has integrated AI tools into development workflows.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>Missing explicit experience with PHP and Laravel.</li><li>Does not mention SQL explicitly (though PostgreSQL is covered).</li><li>No clear mention of backend development experience specifically.</li></ul>
+              <p><strong>Summary:</strong> Applying for the Full Stack Developer position
+2+ years of experience building web applications
+Experience with React, Next.js, Node.js, NestJS, PostgreSQL, MySQL, MongoDB
+Comfortable working independently on frontend and backend tasks
+Experience integrating AI tools into development workflows</p>
+              <p><strong>Attachments:</strong> Resume indicating 2+ years of professional experience as a Full Stack Engineer
+Experience at Demand Curve Marketing Systems and Raybit Technologies Pvt. Ltd.
+Projects include FinVault, an AI-powered finance platform, and UniBox, an email campaign platform
+Education: B.Tech in Computer Science and Engineering from Government College of Engineering Kannur
+Skills include Python, TypeScript, JavaScript, SQL, Node.js, Express.js, React, and AWS</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0ecb39dce61d05" data-name="Aasif Ali">Draft Reply</button></td>
+      </tr>
+      <tr data-score="70" data-name="keyur soni" data-skills="node.js, react.js, php, aws, rabbitmq" data-exp="17" data-cid="1a0ebce4564c01c4">
+        <td>9</td>
+        <td><strong>Keyur Soni</strong><br><span class="muted">keyur soni &lt;naishakeyur@gmail.com&gt;</span></td>
+        <td>Application for Full Stack Developer – Keyur Soni</td>
+        <td>17 years</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#ca8a04">70</span></td>
+        <td>Senior Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> Node.js, React.js, PHP, AWS, RabbitMQ</p>
+              <p><strong>Current Company:</strong> Interbit Solutions</p>
+              <p><strong>Education:</strong> B.E. in Computer Engineering, S.P.C.E. Visnagar, North Gujarat, India; Post Graduate Diploma in Business Administration (PGDBA), LCCMS, Stratford, London, UK; Advanced Diploma in Information Technology (ADIT), RWC, Hammersmith, London, UK</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>The candidate has PHP as a primary skill, which matches the JD requirement.</li><li>The candidate has extensive full stack development experience with 17 years in the field.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>No mention of Laravel in the candidate&#39;s skills.</li><li>Experience with SQL, PSQL, or Postgres is not explicitly listed.</li><li>No details about specific AI tools or methodologies used.</li></ul>
+              <p><strong>Summary:</strong> • Expert Full Stack Developer with 17+ years of experience in web application development.
+• Senior Full Stack Web Developer at Interbit Solutions (from 10/2016 to Present).
+• Architected multi-tenant frameworks and integrated complex enterprise APIs.
+• Developed high-volume data pipelines and automated server infrastructure.
+• Managed multiple significant projects, including Omnitrigger, InventoryWay, EcommCube, and Ringpatch.
+• Previous experience includes leading teams and providing mentorship in companies like I-Verve Infoweb Ltd and Ucodia Ltd.
+• Holds multiple relevant degrees in Computer Engineering and Business Administration.</p>
+              <p><strong>Attachments:</strong> • Resume attached (keyur-soni-cv.pdf).
+• Professional experience includes roles at Interbit Solutions, I-Verve Infoweb, and Ucodia.
+• Major projects detailed include Omnitrigger Marketing Platform, InventoryWay Warehouse System, EcommCube Drop-Shipping Automation, and Ringpatch CRM Engine.
+• Technical skills cover a wide range of backend and frontend technologies, databases, cloud services, and automation tools.
+• Education includes a Bachelor&#39;s degree in Computer Engineering, a PGDBA, and an Advanced Diploma in Information Technology.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0ebce4564c01c4" data-name="Keyur Soni">Draft Reply</button></td>
+      </tr>
+      <tr data-score="65" data-name="karina quraishi" data-skills="react.js, node.js, nestjs, express, postgresql" data-exp="5" data-cid="1a0ece064c7c8572">
+        <td>10</td>
+        <td><strong>Karina Quraishi</strong><br><span class="muted">Karina &lt;karinaquraishi37@gmail.com&gt;</span></td>
+        <td>Full Stack Developer!</td>
+        <td>5 years</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#ca8a04">65</span></td>
+        <td>Mid-level Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> React.js, Node.js, NestJS, Express, PostgreSQL</p>
+              <p><strong>Current Company:</strong> Klozet Technologies Pvt. Ltd.</p>
+              <p><strong>Education:</strong> Bachelor of Technology (B.Tech) from Rajiv Gandhi Proudyogiki Vishwavidyalaya (RGPV), Bhopal, Madhya Pradesh, India</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has full-stack development experience and mentions proficiency with PostgreSQL.</li><li>Experience with AI tools aligns with the job requirement.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>No mention of PHP or Laravel skills.</li><li>Frontend development focus on React.js, lacking requirement specifics for traditional frontend tech.</li><li>Lacks mention of SQL in general, focusing only on PostgreSQL.</li></ul>
+              <p><strong>Summary:</strong> • Expressing interest in a full-stack developer position advertised on LinkedIn.
+• 5+ years of experience in building scalable full-stack applications.
+• Proficient in React.js, Node.js, NestJS, Express, PostgreSQL, MongoDB, AWS, Docker, and CI/CD.
+• Developed RESTful and GraphQL APIs and leveraged AI-assisted development practices.
+• Strong collaborator dedicated to delivering high-quality software solutions.
+• Seeking an opportunity to discuss contributions to the team.</p>
+              <p><strong>Attachments:</strong> • Documented experience as a Fullstack Developer from January 2021 to present at Klozet Technologies Pvt. Ltd.
+• Roles included developing web applications and working on complex existing codes for new business workflows.
+• Involved in architectural problem solving related to data and scalability.
+• Specific projects include a React dashboard and NestJS reporting service, integration of AI tools to speed up coding and debugging, and maintaining both frontend and backend applications.
+• Educational background includes a Bachelor of Technology degree.
+• Recent portfolios highlighted various web applications developed with specific skills and team involvement.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0ece064c7c8572" data-name="Karina Quraishi">Draft Reply</button></td>
+      </tr>
+      <tr data-score="65" data-name="mofasser hossain" data-skills="react, next.js, node.js, postgresql, typescript" data-exp="5" data-cid="1a0eca3038936f2b">
+        <td>11</td>
+        <td><strong>Mofasser Hossain</strong><br><span class="muted">Mofasser Hossain &lt;mofasserhossain01@gmail.com&gt;</span></td>
+        <td>Application for Full Stack Developer (Remote) — Mofasser Hossain</td>
+        <td>5 years</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#ca8a04">65</span></td>
+        <td>Mid-level Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> React, Next.js, Node.js, PostgreSQL, TypeScript</p>
+              <p><strong>Current Company:</strong> Spensa.ai</p>
+              <p><strong>Education:</strong> Bachelor&#39;s in Computer Science &amp; Engineering (CSE) from Green University Bangladesh</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has 5 years of experience which meets the requirement.</li><li>Has strong backend skills with PostgreSQL.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>Missing explicit experience with PHP and Laravel.</li><li>No direct mention of AI tools beyond general experience.</li></ul>
+              <p><strong>Summary:</strong> Applied for Full Stack Developer role
+5+ years of experience in software engineering
+Expert in both frontend and backend technologies
+Current position at Spensa.ai focusing on SaaS products
+Significant experience in AI integrations and automation workflows
+Strong communication and ownership of work</p>
+              <p><strong>Attachments:</strong> Resume details:
+- Current position: Software Engineer at Spensa.ai (Feb 2025 - Present)
+- Developed various SaaS modules and AI workflows
+- Previous position: Full-Stack Developer at Kalpas Innovations (May 2021 - Jan 2025)
+- Involved in diverse projects across multiple domains like e-commerce and edtech
+- Programming skills include TypeScript, JavaScript, Python, SQL
+- Proven track record in delivering complex features and client requirements
+- Education: Bachelor&#39;s in Computer Science &amp; Engineering from Green University Bangladesh, expected graduation May 2026
+- Languages: Fluent in English, native in Bengali</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0eca3038936f2b" data-name="Mofasser Hossain">Draft Reply</button></td>
+      </tr>
+      <tr data-score="60" data-name="zahid ejaz" data-skills="full stack development, react, node.js, python, java" data-exp="10" data-cid="1a0ecab77316406a">
+        <td>12</td>
+        <td><strong>Zahid Ejaz</strong><br><span class="muted">Muhammad Zahid &lt;muhmmadzahid158@gmail.com&gt;</span></td>
+        <td>Full Stack Developer</td>
+        <td>10 years</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#ca8a04">60</span></td>
+        <td>Senior Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> Full Stack Development, React, Node.js, Python, Java</p>
+              <p><strong>Current Company:</strong> Atomic Object</p>
+              <p><strong>Education:</strong> Bachelor of Science in Computer Science from NFC IET Multan</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>10 years of experience in full-stack web development.</li><li>Experience with AI tools.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>Missing PHP and Laravel skills.</li><li>No experience mentioned with SQL, PSQL, or Postgres databases.</li><li>Lack of specific backend development experience relevant to the job description.</li></ul>
+              <p><strong>Summary:</strong> • Interested in Full Stack Developer position
+• 10 years of experience in full-stack web development
+• Proficient in technologies such as React, Next.js, Angular, Node.js, Python, and Java
+• Experience with cloud technologies and AI tools
+• Comfortable with problem-solving and project ownership
+• Based in Lahore, available for full-time remote work.</p>
+              <p><strong>Attachments:</strong> • PDF attachment named Zahid-Ejaz.pdf
+• Summary of extensive experience as a Senior Full Stack Engineer and Team Lead
+• Key projects include ERP Systems, AI-Driven Analytics, Healthcare Platforms
+• Highlights leadership, mentoring, and Agile practices in team settings
+• Detailed skills in frontend and backend technologies, Databases, DevOps, and Cloud services
+• Lists multiple relevant projects and technical contributions across various domains.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0ecab77316406a" data-name="Zahid Ejaz">Draft Reply</button></td>
+      </tr>
+      <tr data-score="60" data-name="ansh tripathi" data-skills="full-stack development, websockets, redis, jwt, restful apis" data-exp="2" data-cid="1a0ec73701a4c862">
+        <td>13</td>
+        <td><strong>Ansh Tripathi</strong><br><span class="muted">Ansh Tripathi &lt;ansh.tripathi17012006@gmail.com&gt;</span></td>
+        <td>Applying For Software Developer Opportunities</td>
+        <td>2 years</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#ca8a04">60</span></td>
+        <td>Junior Full-Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> Full-Stack Development, WebSockets, Redis, JWT, RESTful APIs</p>
+              <p><strong>Current Company:</strong> Ecommerce Collections</p>
+              <p><strong>Education:</strong> -</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has experience in full-stack development.</li><li>Candidate is currently working as a Junior Full-Stack Developer which is relevant to the role.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>Lacks specific experience with PHP and Laravel.</li><li>No mention of SQL, PSQL, or Postgres in skills or experience.</li><li>No experience mentioned with AI tools.</li></ul>
+              <p><strong>Summary:</strong> Expressing interest in Software Developer opportunities
+Currently a Junior Full-Stack Developer at Ecommerce Collections
+Experience in building backend services and real-time systems
+Focused on solving performance and reliability issues
+Proven track record of architecting solutions for real-world challenges</p>
+              <p><strong>Attachments:</strong> Resume attached 
+Links to LinkedIn profile: https://www.linkedin.com/in/ansh-tripathi-577404318 
+Links to GitHub profile: https://github.com/anshtripathi03 
+Portfolio link: https://ansh-portfolio-ten-zeta.vercel.app/ 
+Projects linked: https://approach-two.vercel.app/, https://devfront-sage.vercel.app/</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0ec73701a4c862" data-name="Ansh Tripathi">Draft Reply</button></td>
+      </tr>
+      <tr data-score="60" data-name="sharmin sultana summa" data-skills="react, next.js, node.js, express, postgresql" data-exp="1" data-cid="1a0ea9ea1aff6bb3">
+        <td>14</td>
+        <td><strong>Sharmin Sultana Summa</strong><br><span class="muted">Sharmin Sultana &lt;itzsumma11@gmail.com&gt;</span></td>
+        <td>Curious about ByteSpark’s work / Full Stack Developer role</td>
+        <td>1 year</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#ca8a04">60</span></td>
+        <td>Junior Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> React, Next.js, Node.js, Express, PostgreSQL</p>
+              <p><strong>Current Company:</strong> Not mentioned</p>
+              <p><strong>Education:</strong> B.Sc. in Electrical &amp; Electronic Engineering from Leading University</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has experience in full stack development.</li><li>Candidate is skilled in PostgreSQL, which is mentioned in the JD.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>Missing skills in PHP and Laravel.</li><li>No mention of SQL beyond PostgreSQL.</li><li>No experience in specific frontend technologies stated in the JD.</li><li>Lack of backend experience with PHP or Laravel.</li></ul>
+              <p><strong>Summary:</strong> Sharmin is a Full Stack Developer with over a year of experience in building full-stack web applications.
+Skilled in modern technologies including React, Next.js, Node.js, and Express.
+Actively integrates AI tools into development workflow for enhanced productivity.
+Has a track record of developing scalable applications with secure authentication and role-based access.</p>
+              <p><strong>Attachments:</strong> • Resume detailing experience as a Full Stack Developer.
+• Professional skills include JavaScript (ES6), TypeScript, React.js, Next.js, Node.js, and Express.js.
+• Experience with PostgreSQL, Prisma ORM, MongoDB, and REST API integration.
+• Key projects include: 
+  - **PureYuna**: E-commerce platform with secure auth and transaction management using TypeScript and PostgreSQL.
+  - **DevArchify**: AI SaaS platform for generating architecture blueprints.
+  - **VerdictHub**: Online lawyer hiring platform with Stripe payment integration.
+• Education includes B.Sc. in Electrical &amp; Electronic Engineering, expected completion in 2023.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0ea9ea1aff6bb3" data-name="Sharmin Sultana Summa">Draft Reply</button></td>
+      </tr>
+      <tr data-score="60" data-name="s.m. kamrul hasan koche" data-skills="next.js, react.js, typescript, node.js, postgresql" data-exp="3" data-cid="1a0e8e5dec3fc6de">
+        <td>15</td>
+        <td><strong>S.M. Kamrul Hasan Koche</strong><br><span class="muted">Kamrul Hasan &lt;kamrulkoche@gmail.com&gt;</span></td>
+        <td>Application for Full Stack Developer</td>
+        <td>3 years</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#ca8a04">60</span></td>
+        <td>Mid-level Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> Next.js, React.js, TypeScript, Node.js, PostgreSQL</p>
+              <p><strong>Current Company:</strong> Hedaya Global Solutions</p>
+              <p><strong>Education:</strong> B.Sc. in Software Engineering, American International University-Bangladesh (AIUB)</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has 3 years of experience in full stack development.</li><li>Candidate is skilled in PostgreSQL, which is a required technology in the JD.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>Missing PHP and Laravel skills.</li><li>No experience specifically mentioned in backend development in contexts aligning with the JD.</li><li>No direct experience mentioned with SQL or AI tools.</li></ul>
+              <p><strong>Summary:</strong> Applying for the Full Stack Developer position
+Over 3 years of experience in building modern web applications
+Skilled in Next.js, React, TypeScript, Node.js, NestJS, FastAPI
+Solid experience in developing scalable and user-focused applications
+Strong problem-solving skills with quick learning of new technologies</p>
+              <p><strong>Attachments:</strong> Resume includes: 
+- **Professional Experience:** 
+   - **Software Engineer at Hedaya Global Solutions (09/2025 - Present)**: Developed a Japanese used car marketplace and corporate website using Next.js and FastAPI. Delivered real-time features and implemented advanced search functions. 
+   - **Junior Software Engineer at Lamp Techs (05/2025 - 08/2025)**: Worked on an office rental platform using Next.js and Node.js, implementing role-based dashboards and API integrations. 
+   - **Junior Software Engineer at Tappware Solutions Limited (09/2023 - 03/2025)**: Contributed to the national COVID-19 vaccine portal, focusing on frontend features and API integrations. 
+- **Projects:** 
+   - Developed a multi-vendor e-commerce marketplace with Next.js and NestJS. Designed PostgreSQL schema and REST APIs. 
+- **Education:** 
+   - B.Sc. in Software Engineering from American International University-Bangladesh, graduated in 08/2023. Relevant coursework includes Advanced Web Technologies and Database Management. 
+- **Skills:** 
+   - Proficient in JavaScript, React.js, FastAPI, REST APIs, PostgreSQL, and tools like GitHub and Postman.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0e8e5dec3fc6de" data-name="S.M. Kamrul Hasan Koche">Draft Reply</button></td>
+      </tr>
+      <tr data-score="60" data-name="bhakti sanghani" data-skills="node.js, react, express.js, javascript, typescript" data-exp="3" data-cid="1a0e8c767053961a">
+        <td>16</td>
+        <td><strong>Bhakti Sanghani</strong><br><span class="muted">Bhakti Sanghani &lt;sanghanibhakti922@gmail.com&gt;</span></td>
+        <td>Application for Full Stack Developer – Bhakti Sanghani</td>
+        <td>3 years</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#ca8a04">60</span></td>
+        <td>Junior Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> Node.js, React, Express.js, JavaScript, TypeScript</p>
+              <p><strong>Current Company:</strong> Fluvina Technologies</p>
+              <p><strong>Education:</strong> B.Tech, Computer Engineering from Dharmsinh Desai Institute of Technology, Dharmsinh Desai University</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>3 years of full-stack development experience aligns with the role&#39;s requirement.</li><li>Experience with PostgreSQL matches the database requirements stated in the JD.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>No mention of PHP or Laravel, which are explicitly required.</li><li>Lacks SQL expertise as required in the JD.</li></ul>
+              <p><strong>Summary:</strong> • Full-Stack Software Engineer with 3 years of experience shipping products across healthcare, IoT, aviation, and e-commerce.
+• Proficient in React and JavaScript/TypeScript on the frontend and Node.js, Express.js, Python, and Django on the backend.
+• Experience in working with MySQL, PostgreSQL, and MongoDB databases.
+• Utilizes AI development tools for coding and debugging to enhance workflows.
+• Comfortable taking ownership of development features from requirements through to release while collaborating with various teams.</p>
+              <p><strong>Attachments:</strong> • Resume attached with detailed employment history and project descriptions.
+• Experience listed from June 2025 to July 2026 at Fluvina Technologies where automated telemetry ingestion was achieved.
+• At DnT Infotech LLP, improved API reliability for healthcare data.
+• Projects included Vehicle Monitoring System, Healthcare Application, and Aviation Crew Management System with specific technologies mentioned.
+• Education includes B.Tech in Computer Engineering and a Diploma in Computer Engineering.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0e8c767053961a" data-name="Bhakti Sanghani">Draft Reply</button></td>
+      </tr>
+      <tr data-score="55" data-name="abu hanzla" data-skills="next.js, nestjs, typescript, postgresql, fastapi" data-exp="1" data-cid="1a0edc723b3e0332">
+        <td>17</td>
+        <td><strong>Abu Hanzla</strong><br><span class="muted">Hanzla Asam &lt;hanzlaasam@gmail.com&gt;</span></td>
+        <td>Full Stack Developer</td>
+        <td>1 year</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#ca8a04">55</span></td>
+        <td>Junior Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> Next.js, NestJS, TypeScript, PostgreSQL, FastAPI</p>
+              <p><strong>Current Company:</strong> Zylo Solutions</p>
+              <p><strong>Education:</strong> Bachelor of Science in Computer Science, University of Education</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>The candidate has experience in PostgreSQL, which aligns with the database requirements.</li><li>The candidate has full stack development experience, covering both frontend and backend.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>Missing PHP and Laravel skills which are required in the JD.</li><li>No specific mention of SQL or PSQL in the experience, despite the candidate using PostgreSQL.</li></ul>
+              <p><strong>Summary:</strong> Full Stack Engineer with expertise in building and scaling production-grade web applications using modern tech stacks.
+Proven ability to deliver end-to-end solutions including authentication, payment integrations, multi-tenancy, and AI-powered features.
+Experienced in translating product requirements into robust database schemas, intuitive UIs, and performant backends.
+Track record of shipping projects that reach users and deliver measurable business impact.</p>
+              <p><strong>Attachments:</strong> PROFESSIONAL SUMMARY: Full Stack Engineer with expertise in building and scaling production-grade web applications using modern tech stacks (Next.js, NestJS, TypeScript, PostgreSQL, FastAPI).
+TECHNICAL SKILLS:
+- Frontend: HTML, CSS, JavaScript, TypeScript, React.js, Next.js, TailwindCSS, React Redux, Shadcn/UI
+- Backend: Node.js, Express.js, NestJS, FastAPI (Python), RESTful APIs, tRPC
+- Databases: PostgreSQL, MongoDB, Supabase, Prisma ORM
+- Cloud &amp; DevOps: AWS (S3, Route53, EC2, RDS, Amplify, DynamoDB), Docker, CI/CD
+- Integrations: Stripe, Paddle, GitHub OAuth, AWS Cognito, Payload CMS, WooCommerce, Shopify, Google Merchant Center
+- AI &amp; Automation: RAG Systems, Chatbots, Voice Agents, n8n Workflows, LangChain
+PROJECTS:
+- MagicFeedPro: Engineered SaaS platform for e-commerce feed optimization with AI-powered features.
+- ScaleApp: Designed and deployed production NestJS backend for an iOS app with role-based access control and secured multi-user workflows.
+- SocialOS: Built full-stack social platform prototype with real-time features.
+- MCP Tool: Developed reusable API schema validation tool for multiple frameworks, contributing to open-source.
+- Appisol Intelligent Website: Engineered company website with AI-powered conversational system.
+EXPERIENCE:
+- Associate Software Engineer at Zylo Solutions, Lahore, Pakistan (Oct 2025 – May 2026)
+- Full Stack Developer at Applied Intelligence Solutions (Private) Limited, Lahore, Pakistan (Jun 2025 – Oct 2025)
+EDUCATION: Bachelor of Science in Computer Science, University of Education, GPA: 3.28</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0edc723b3e0332" data-name="Abu Hanzla">Draft Reply</button></td>
+      </tr>
+      <tr data-score="55" data-name="vatsal patel" data-skills="node.js, react, mysql, mongodb, ai integration" data-exp="3" data-cid="1a0ed6a7fcb05a15">
+        <td>18</td>
+        <td><strong>Vatsal Patel</strong><br><span class="muted">vatsal patel &lt;vatsalpatel9393@gmail.com&gt;</span></td>
+        <td>Application for Full Stack Developer – Vatsal Patel</td>
+        <td>3 years</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#ca8a04">55</span></td>
+        <td>Mid-level Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> Node.js, React, MySQL, MongoDB, AI integration</p>
+              <p><strong>Current Company:</strong> Saleshandy</p>
+              <p><strong>Education:</strong> B.Tech, Information Technology from Dharmsinh Desai University</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has 3+ years of experience aligning with the required experience.</li><li>Candidate has experience in frontend and backend development.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>No experience mentioned in PHP or Laravel.</li><li>No experience with SQL, PSQL, or Postgres specifically mentioned.</li></ul>
+              <p><strong>Summary:</strong> • Applying for the Full Stack Developer role with 3+ years of experience.
+• Experience in frontend and backend development, proficient in Node.js, NestJS, React, MySQL, and MongoDB.
+• Built a production RAG-based AI assistant using OpenAI APIs.
+• Developed AutoReel.in, an AI video SaaS platform, independently managing both frontend and backend.
+• Open to remote work, comfortable taking ownership of work.</p>
+              <p><strong>Attachments:</strong> • Resume attached listing detailed experience and education.
+• Software Engineer at Saleshandy: Designed a high-volume ClickHouse analytics pipeline, optimized query performance, and enhanced Kafka throughput.
+• Software Engineer Intern at Rapidops Inc.: Built event streaming pipelines with Apache Kafka and developed frontend features using React.js.
+• Projects include AutoReel.in and a peer-to-peer video interview platform, highlighting technologies like NestJS, FastAPI, Redis, and React.
+• Technical skills detailed in resume include distributed systems, various backend technologies, multiple programming languages, and cloud services.
+• Education: B.Tech in Information Technology from Dharmsinh Desai University with relevant coursework in DBMS, OS, Computer Networks, and OOP.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0ed6a7fcb05a15" data-name="Vatsal Patel">Draft Reply</button></td>
+      </tr>
+      <tr data-score="55" data-name="pavan sukhwal" data-skills="java, spring boot, react, mysql, rest apis" data-exp="1" data-cid="1a0eb8198e7394e5">
+        <td>19</td>
+        <td><strong>Pavan Sukhwal</strong><br><span class="muted">Pavan Sukhwal &lt;pavansukhwal.rj@gmail.com&gt;</span></td>
+        <td>Application for Full Stack Developer – Pavan Sukhwal</td>
+        <td>1 year</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#ca8a04">55</span></td>
+        <td>Junior Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> Java, Spring Boot, React, MySQL, REST APIs</p>
+              <p><strong>Current Company:</strong> Solinix Software Solutions</p>
+              <p><strong>Education:</strong> Bachelor of Computer Applications, Mohanlal Sukhadia University</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has experience in full stack development.</li><li>Candidate is proficient in SQL, which is relevant to the database requirements.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>No experience with PHP or Laravel, two key technologies in the JD.</li><li>No mention of Postgres or PSQL as mentioned in the JD.</li><li>Lacks experience in AI tools as required in the JD.</li></ul>
+              <p><strong>Summary:</strong> Motivated and detail-oriented BCA graduate with hands-on experience as a Full Stack Developer.
+Skilled in Java, Spring Boot, React.js, Node.js, Express.js, SQL, MongoDB, HTML, CSS, JavaScript, REST APIs, and Git.
+Experienced in developing responsive web applications, reusable UI components, backend modules, and database-driven applications.
+Quick learner with strong problem-solving skills and the ability to collaborate effectively in development teams.</p>
+              <p><strong>Attachments:</strong> Resume includes:
+- Full Stack Developer at Solinix Software Solutions (May 2026 – Present)
+  - Working on live web application projects using React.js, JavaScript, HTML, CSS, and REST APIs.
+  - Developing responsive and reusable UI components for various devices.
+  - Collaborating with team members through daily stand-up meetings and project reviews.
+- Frontend Developer Intern at MATE (Jun 2025 – Aug 2025)
+  - Built five responsive web pages and improved existing layouts.
+- Projects:
+  - Online Education Platform: Developed a web-based education platform with authentication and management features using Java and SQL.
+  - Solinix Company Website: Created a responsive multi-page company website using React.js.
+  - React Native POC Applications: Built small mobile application POCs using React Native and Expo.
+- Proficient in Git, CI/CD, and various frontend/backend technologies.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0eb8198e7394e5" data-name="Pavan Sukhwal">Draft Reply</button></td>
+      </tr>
+      <tr data-score="50" data-name="aditya pandit" data-skills="javascript, node.js, react.js, aws, ai integrations" data-exp="7" data-cid="1a0ecdf486b0b409">
+        <td>20</td>
+        <td><strong>Aditya Pandit</strong><br><span class="muted">Aditya P &lt;adityapdev525@gmail.com&gt;</span></td>
+        <td>Full Stack Developer!</td>
+        <td>7 years</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#ca8a04">50</span></td>
+        <td>Mid-level Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> JavaScript, Node.js, React.js, AWS, AI Integrations</p>
+              <p><strong>Current Company:</strong> Zecdata Technologies</p>
+              <p><strong>Education:</strong> Bachelor of Engineering in Computer Science, RGPV University, Bhopal</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has 7 years of total experience which is above the stated requirement.</li><li>Experience in full-stack development aligns with the job description.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>Missing specific experience in PHP and Laravel</li><li>No mention of SQL, PSQL, or Postgres</li><li>Frontend development specifics not provided in detail</li></ul>
+              <p><strong>Summary:</strong> Interested in Full-Time Remote Full Stack Developer role.
+7+ years of experience in React.js and JavaScript.
+5+ years of experience in Node.js.
+Hands-on experience with AWS, microservices, CI/CD, and AI-powered solutions.
+Accomplished in building scalable full-stack applications.
+Worked in Agile SCRUM environments.
+Skilled in developing secure REST APIs and AI automation.</p>
+              <p><strong>Attachments:</strong> Aditya Pandit has a Bachelor&#39;s in Computer Science from RGPV University.
+Currently a Fullstack Developer at Zecdata Technologies since January 2019, involved in product development and API management.
+Proficient in multiple languages and technologies including JavaScript, Node.js, Express.js, and various databases.
+Experience in several projects focusing on AI-driven applications and scalable solutions.
+Projects include CirrusLabs, Cartedo, and EverBee, emphasizing automation and user experience enhancements.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0ecdf486b0b409" data-name="Aditya Pandit">Draft Reply</button></td>
+      </tr>
+      <tr data-score="50" data-name="pial uddin" data-skills="javascript, react.js, node.js, express.js, mongodb" data-exp="" data-cid="1a0e87e216b9439d">
+        <td>21</td>
+        <td><strong>Pial Uddin</strong><br><span class="muted">Md Pial &lt;pialname394@gmail.com&gt;</span></td>
+        <td>Application for Full Stack Developer</td>
+        <td>Not specified</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#ca8a04">50</span></td>
+        <td>Junior Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> JavaScript, React.js, Node.js, Express.js, MongoDB</p>
+              <p><strong>Current Company:</strong> Not mentioned</p>
+              <p><strong>Education:</strong> Diploma in Computer Engineering from Life Line Polytechnic Institute</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>The candidate has experience in full stack development.</li><li>The candidate has worked with PostgreSQL, which aligns with the database requirement.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>Missing required skills such as PHP and Laravel.</li><li>No experience mentioned with SQL, PSQL, or AI tools beyond a single project reference.</li></ul>
+              <p><strong>Summary:</strong> Fast-learning developer with experience in building real-world applications.
+Worked on projects such as ArtHub, MedVantage, and StoryNook.
+Skilled in frontend and backend technologies.
+Seeking a Full Stack Developer role to contribute and grow.</p>
+              <p><strong>Attachments:</strong> Career Objective: Full Stack Developer experienced in the entire stack from frontend to backend.
+Skills include JavaScript (ES6+), TypeScript, React.js, Next.js, HTML5, CSS3, Tailwind CSS, Express.js, Node.js, MongoDB, PostgreSQL, and various tools.
+
+Projects:
+- ArtHub: Integrated Stripe payment gateway and implemented role-based access control.
+- Medvantage: Developed an AI chat assistant for clinical trial matching.
+- StoryNook: Created secure user authentication and developed user profile management.
+
+Education: Diploma in Computer Engineering from Life Line Polytechnic Institute with CGPA 3.84/4.00.
+Language Proficiency: Bangla (Native), English (Basic).</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0e87e216b9439d" data-name="Pial Uddin">Draft Reply</button></td>
+      </tr>
+      <tr data-score="45" data-name="hafsa sajid" data-skills="javascript, react.js, node.js, mern, ai integration" data-exp="1" data-cid="1a0ec8db49eac7e3">
+        <td>22</td>
+        <td><strong>Hafsa Sajid</strong><br><span class="muted">Hafsa Sajid &lt;sajidhafsa23@gmail.com&gt;</span></td>
+        <td>Application for Full Stack Developer Position</td>
+        <td>1 year</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#dc2626">45</span></td>
+        <td>Junior Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> JavaScript, React.js, Node.js, MERN, AI integration</p>
+              <p><strong>Current Company:</strong> Headstarter AI</p>
+              <p><strong>Education:</strong> BS in Computer Science, University of Education</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has experience with SQL which aligns with the JD requirement.</li><li>Candidate has some knowledge of AI tools, which is mentioned in the JD.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>Missing PHP and Laravel skills as required by the JD.</li><li>No mention of full stack development experience specifically in PHP or Laravel.</li><li>No experience with Postgres database mentioned.</li></ul>
+              <p><strong>Summary:</strong> Applying for the Full Stack Developer position at ByteSpark Innovations.
+Final-year BS Computer Science student with hands-on experience in MERN applications and AI-powered products.
+Experienced in building scalable REST APIs and debugging with AI tools.
+Successfully built and deployed multiple projects including learning management systems and e-commerce platforms.
+Seeking a Junior/Full Stack Engineer role to build reliable, high-impact software.</p>
+              <p><strong>Attachments:</strong> Resume detailing experience as a Technical Trainer/Mentee at Dev Weekends since May 2023.
+Headstarter AI Fellow with AI-powered applications developed during an 8-week program.
+Projects include Mentolytics, an AI-powered student wellbeing platform, and an LMS featuring Redis and Stripe integration.
+Skills listed: JavaScript, TypeScript, C/C++, SQL, MERN stack, REST APIs, and various deployment tools.
+Education: BS in Computer Science from University of Education with relevant coursework.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0ec8db49eac7e3" data-name="Hafsa Sajid">Draft Reply</button></td>
+      </tr>
+      <tr data-score="45" data-name="omkar sanjay vaidya" data-skills="react, node.js, express.js, typescript, mongodb" data-exp="3" data-cid="1a0ec6f01a82eb0a">
+        <td>23</td>
+        <td><strong>Omkar Sanjay Vaidya</strong><br><span class="muted">Omkar Vaidya &lt;omkarvaidya0504@gmail.com&gt;</span></td>
+        <td>Application for Full Stack Developer – Omkar Vaidya</td>
+        <td>3 years</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#dc2626">45</span></td>
+        <td>Junior Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> React, Node.js, Express.js, TypeScript, MongoDB</p>
+              <p><strong>Current Company:</strong> Not mentioned</p>
+              <p><strong>Education:</strong> Not mentioned</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>The candidate has over 3 years of experience in full stack development.</li><li>The candidate has experience with Node.js and Express.js, which are relevant to backend development.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>Missing required technologies such as PHP, Laravel, SQL, PSQL, and Postgres.</li><li>No mention of frontend frameworks like Laravel that are specified in the JD.</li><li>No experience indicated with AI tools.</li></ul>
+              <p><strong>Summary:</strong> Dear ByteSpark Innovations Hiring Team,
+Please consider my application for the Full Stack Developer position.
+With over 3 years of experience in React, Node.js, Express.js, TypeScript, and MongoDB, I bring hands-on expertise in developing and integrating frontend and backend applications.
+My work includes customer portals, CRM systems, and REST APIs for the UK energy sector.
+I also use Claude to support development and debugging, while reviewing and validating the generated code.
+Your focus on building real products and encouraging ownership aligns with my interests.
+I would welcome the opportunity to contribute to your team in this full-time, remote role.
+Please find my resume attached for your consideration.
+Portfolio (http://omkar-portfolio-mu-amber.vercel.app/) | LinkedIn (https://www.linkedin.com/in/omkar-vaidya-54b7a0261/) | GitHub (https://github.com/Omkar-S-Vaidya)
+Best regards,
+Omkar Sanjay Vaidya
++91 8806061235
+omkarvaidya0504@gmail.com</p>
+              <p><strong>Attachments:</strong> Not mentioned</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0ec6f01a82eb0a" data-name="Omkar Sanjay Vaidya">Draft Reply</button></td>
+      </tr>
+      <tr data-score="45" data-name="siddheshwar yerbage" data-skills="react.js, node.js, mongodb, ai/ml applications, rest apis" data-exp="4" data-cid="1a0eb924dc9bfa32">
+        <td>24</td>
+        <td><strong>Siddheshwar Yerbage</strong><br><span class="muted">Siddheshwar Yerbage &lt;sidhuyerbage@gmail.com&gt;</span></td>
+        <td>Application for Full Stack Developer – Siddheshwar Yerbage</td>
+        <td>4 years</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#dc2626">45</span></td>
+        <td>Junior Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> React.js, Node.js, MongoDB, AI/ML applications, REST APIs</p>
+              <p><strong>Current Company:</strong> She Can Foundation</p>
+              <p><strong>Education:</strong> Bachelor of Engineering, Savitribai Phule Pune University</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has 4 years of experience which meets the total experience requirement.</li><li>Candidate has skills in Full Stack and Frontend development.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>PHP</li><li>Laravel</li><li>SQL</li><li>Postgres</li></ul>
+              <p><strong>Summary:</strong> Full Stack and Frontend Developer with hands-on experience building responsive web applications using React.js and Next.js.
+Proficient in REST API integration, state management, and cloud deployment.
+Skilled in AI/ML applications including RAG systems and agentic workflows.
+Strong problem-solving abilities with a proven track record of delivering on-time features in Agile environments.</p>
+              <p><strong>Attachments:</strong> Siddheshwar Yerbage&#39;s resume includes sections on education, technical skills, projects, experience, certifications, and language proficiency, with a detailed account of roles, dates, and projects undertaken.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0eb924dc9bfa32" data-name="Siddheshwar Yerbage">Draft Reply</button></td>
+      </tr>
+      <tr data-score="40" data-name="md fardin faruk" data-skills="react.js, next.js, node.js, express.js, mongodb" data-exp="4" data-cid="1a0ed343a4120296">
+        <td>25</td>
+        <td><strong>Md Fardin Faruk</strong><br><span class="muted">Far Din &lt;fardinfaruktofu990@gmail.com&gt;</span></td>
+        <td>Application for Full Stack Developer - Md Fardin Faruk</td>
+        <td>4 years</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#dc2626">40</span></td>
+        <td>Junior Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> React.js, Next.js, Node.js, Express.js, MongoDB</p>
+              <p><strong>Current Company:</strong> Not mentioned</p>
+              <p><strong>Education:</strong> Diploma in Computer Science &amp; Technology, Khulshi, Chittagong National Polytechnic College</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has full-stack development experience.</li><li>Familiarity with JavaScript frameworks like React.js and Next.js.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>No experience with PHP or Laravel mentioned.</li><li>No mention of SQL, PSQL, or Postgres.</li><li>Limited experience with backend technologies as specified in the JD.</li></ul>
+              <p><strong>Summary:</strong> • Excited to apply for Full Stack Developer role
+• Hands-on experience with Next.js, React.js, Node.js, Express.js, MongoDB
+• Built the full-stack application StartupForge
+• Quick learner, motivated to contribute and grow with the team
+• Proficient in using AI tools for development efficiency</p>
+              <p><strong>Attachments:</strong> • Resume includes a detailed career objective focusing on building scalable web applications
+• Skills listed: HTML5, CSS3, JavaScript, TypeScript, Tailwind CSS, JWT Authentication
+• Project details for StartupForge: dashboards, payment processing, and metrics for users
+• Project details for MediQueue: secure authentication, profile management, and scheduling
+• Education includes a Diploma in Computer Science &amp; Technology from Khulshi, Chittagong National Polytechnic College
+• Certifications in Complete Web Development Course and JavaScript Fundamentals
+• Extracurricular activities involve practical full-stack projects and coding assignments</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0ed343a4120296" data-name="Md Fardin Faruk">Draft Reply</button></td>
+      </tr>
+      <tr data-score="40" data-name="md sifat bin anwar" data-skills="react, node.js, express.js, mongodb, postgresql" data-exp="1" data-cid="1a0ed206f8639a85">
+        <td>26</td>
+        <td><strong>Md Sifat Bin Anwar</strong><br><span class="muted">Sifat Bin Anwar &lt;sifatbin.official@gmail.com&gt;</span></td>
+        <td>Application for Junior Full-Stack Developer Position - Md Sifat Bin Anwar</td>
+        <td>1 year</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#dc2626">40</span></td>
+        <td>Junior Full-Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> React, Node.js, Express.js, MongoDB, PostgreSQL</p>
+              <p><strong>Current Company:</strong> Freelance</p>
+              <p><strong>Education:</strong> Bachelor of Business Administration (BBA), Honours – Accounting, National University Bangladesh</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has experience with PostgreSQL, which matches a listed skill.</li><li>Candidate has full-stack development experience, aligning with the job requirement.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>Missing PHP and Laravel experience</li><li>No experience or mention of SQL or database technologies other than PostgreSQL</li><li>Lacks understanding or experience with AI tools</li></ul>
+              <p><strong>Summary:</strong> Junior Full-Stack Developer with hands-on experience in building scalable web applications using the MERN stack.
+Strong expertise in both frontend and backend technologies including React, Next.js, TypeScript, JavaScript.
+Experience with tools like Docker, Git, and GitHub for version control and collaborative development.
+Eager to contribute to a development team with a focus on writing clean, maintainable code and designing efficient database schemas.</p>
+              <p><strong>Attachments:</strong> Full-Stack Web Developer with strong hands-on experience in building scalable, secure, and database-driven web applications, with a backend-focused approach and strong command of Node.js, Express.js, and RESTful API design.
+Skilled in MongoDB, PostgreSQL, JWT-based authentication, and modern frontend development with React.js and Next.js.
+Built 15+ independent projects, including admin/user dashboards and analytics systems, while solving 200+ programming challenges to strengthen problem-solving and software development skills.
+Experienced in designing maintainable application architectures, integrating third-party services, optimizing backend workflows, and delivering reliable, production-ready web solutions.
+Core Skills include: Frontend: HTML5, CSS3, JavaScript (ES6+), React.js, Next.js, Tailwind CSS.
+Backend: Node.js, Express.js, RESTful API Development, JWT Authentication.
+Database: MongoDB, PostgreSQL.
+Certifications: Full Stack Web Development with MERN - Ostad, 2025; MERN Assessment Certificate - Ostad, 2025.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0ed206f8639a85" data-name="Md Sifat Bin Anwar">Draft Reply</button></td>
+      </tr>
+      <tr data-score="40" data-name="pradip bokha" data-skills="java, python, react.js, node.js, android" data-exp="4" data-cid="1a0ecee3d1a076d4">
+        <td>27</td>
+        <td><strong>Pradip Bokha</strong><br><span class="muted">PRADIP_ BOKHA &lt;pradipbokha123@gmail.com&gt;</span></td>
+        <td>Application For Full Stack Developer</td>
+        <td>4 years</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#dc2626">40</span></td>
+        <td>Junior Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> Java, Python, React.js, Node.js, Android</p>
+              <p><strong>Current Company:</strong> Vicharak</p>
+              <p><strong>Education:</strong> B.E. in Computer Engineering, GMIT Bhavnagar</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has full stack development experience.</li><li>Proficient in multiple programming languages and web technologies.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>Missing PHP and Laravel skills.</li><li>No experience mentioned with SQL, PSQL, or Postgres.</li><li>Lacks experience with AI tools.</li></ul>
+              <p><strong>Summary:</strong> - Applied for a Full Stack Developer position.
+- Currently working as Software Engineer II at Vicharak since September 2022.
+- Experience in leading Android development and building web platforms for IoT solutions.
+- Strong educational background with a B.E. in Computer Engineering from GMIT Bhavnagar.
+- Proficient in multiple programming languages and web technologies.</p>
+              <p><strong>Attachments:</strong> - B.E. in Computer Engineering from GMIT Bhavnagar, graduated in 2023, CGPA: 9.0/10.
+- Experience as Software Engineer II at Vicharak from Sep 2022 - Present.
+- Led development on various Android and web platforms for IoT solutions.
+- Projects include SmartHome IoT Platform, WiDrive, Ridesharing App, and EduConnect.
+- Strong skills in Java, Kotlin, Python, React.js, Node.js, and several web technologies.
+- Achievements include a 3-star rating on LeetCode and successful deployment of multiple Android applications.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0ecee3d1a076d4" data-name="Pradip Bokha">Draft Reply</button></td>
+      </tr>
+      <tr data-score="40" data-name="anas iqbal" data-skills="react.js, next.js, node.js, mongodb, typescript" data-exp="4" data-cid="1a0ecb99868d3918">
+        <td>28</td>
+        <td><strong>Anas Iqbal</strong><br><span class="muted">Anas Iqbal &lt;anasiqbal0009@gmail.com&gt;</span></td>
+        <td>mern stack web developer</td>
+        <td>4 years</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#dc2626">40</span></td>
+        <td>Junior Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> React.js, Next.js, Node.js, MongoDB, TypeScript</p>
+              <p><strong>Current Company:</strong> Autofinder.pk</p>
+              <p><strong>Education:</strong> Bachelor&#39;s in Software Engineering, COMSATS University Islamabad</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has 4+ years of experience in full stack development.</li><li>Candidate&#39;s role involved developing and deploying web applications.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>No experience with PHP or Laravel.</li><li>No mention of SQL, PSQL, or Postgres databases.</li><li>Lacks knowledge of AI tools as mentioned in the JD.</li></ul>
+              <p><strong>Summary:</strong> MERN Stack Developer with 4+ years of experience building scalable web and mobile applications.
+Skilled in React.js, Next.js, React Native, Node.js, Express.js, and TypeScript.
+Experienced in developing RESTful APIs and SaaS-based systems.
+Proficient in Firebase integration for authentication and backend services.
+Hands-on experience in deploying applications on AWS and DigitalOcean.
+Strong understanding of full software development lifecycle.</p>
+              <p><strong>Attachments:</strong> Developed and deployed a complete automobile platform (web, admin panel, iOS &amp; Android apps).
+Managed full lifecycle of development, testing, and deployment for multiple applications.
+Collaborated on large-scale projects delivering high-quality solutions.
+Completed MERN Stack course offered by Great Learning Academy.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0ecb99868d3918" data-name="Anas Iqbal">Draft Reply</button></td>
+      </tr>
+      <tr data-score="40" data-name="muhammad zahid" data-skills="react, node.js, python, aws, docker" data-exp="10" data-cid="1a0ec3bcf8918220">
+        <td>29</td>
+        <td><strong>Muhammad Zahid</strong><br><span class="muted">Muhammad Zahid &lt;zahidforuonly@gmail.com&gt;</span></td>
+        <td>Full Stack Developer</td>
+        <td>10 years</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#dc2626">40</span></td>
+        <td>Senior Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> React, Node.js, Python, AWS, Docker</p>
+              <p><strong>Current Company:</strong> Micro Data Tech</p>
+              <p><strong>Education:</strong> Bachelor of Science in Computer Science, Bahauddin Zakariya University, Multan, Pakistan</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>10 years of total experience in full stack development</li><li>Experience with AI-assisted solutions which aligns with JD&#39;s mention of AI tools</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>PHP</li><li>Laravel</li><li>SQL</li><li>Postgres</li><li>Frontend development</li><li>Backend development</li><li>Database management</li></ul>
+              <p><strong>Summary:</strong> Interested in the Full Stack Developer position.
+10+ years of experience in full-stack development.
+Strong expertise in various technologies including React, Next.js, Node.js, Python, and more.
+Experience in developing AI-assisted solutions and tools.
+Skilled in managing projects from development through to production deployment.
+Comfortable working remotely and independently.</p>
+              <p><strong>Attachments:</strong> Full resume detailing professional experience, educational background, and extensive skill set in development and engineering.
+Recent Position: Senior Software Engineer &amp; Team Lead at Micro Data Tech (Feb 2025 – Present)
+Key Projects: Developed ERP, CRM systems, optimized cloud infrastructure using CI/CD.
+Skills included: Python, TensorFlow, AWS, Docker.
+Previous Positions: Roles as Full Stack Developer &amp; Team Lead with significant contributions to various projects in fintech and e-commerce from Jul 2024 – Jan 2026.
+Education: Bachelor of Science in Computer Science from Bahauddin Zakariya University.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0ec3bcf8918220" data-name="Muhammad Zahid">Draft Reply</button></td>
+      </tr>
+      <tr data-score="40" data-name="pavan sukhwal" data-skills="java, spring boot, react, node.js, mysql" data-exp="1" data-cid="1a0eb866043bbf29">
+        <td>30</td>
+        <td><strong>Pavan Sukhwal</strong><br><span class="muted">Pavan Sukhwal &lt;pavansukhwal.rj@gmail.com&gt;</span></td>
+        <td>Application for Full Stack Developer</td>
+        <td>1 year</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#dc2626">40</span></td>
+        <td>Junior Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> Java, Spring Boot, React, Node.js, MySQL</p>
+              <p><strong>Current Company:</strong> Solinix Software Solutions</p>
+              <p><strong>Education:</strong> Bachelor of Computer Applications, Mohanlal Sukhadia University</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has full stack development experience.</li><li>Experience with SQL which is relevant.</li><li>Hands-on experience in Frontend Development.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>Missing PHP and Laravel experience.</li><li>No experience with Postgres or PSQL.</li><li>Lacks AI tools experience.</li></ul>
+              <p><strong>Summary:</strong> Motivated and detail-oriented BCA graduate with hands-on experience as a Full Stack Developer at Solinix Software Solutions and previous Frontend Development internship experience.
+Skilled in Java, Spring Boot, React.js, Node.js, Express.js, SQL, MongoDB, HTML, CSS, JavaScript, REST APIs, and Git.
+Experienced in developing responsive web applications, reusable UI components, backend modules, and database-driven applications.
+Quick learner with strong problem-solving skills and the ability to collaborate effectively in development teams.</p>
+              <p><strong>Attachments:</strong> • Resume detailing professional experience as a Full Stack Developer at Solinix Software Solutions from May 2026 to present.
+• Frontend Development internship at MATE from June 2025 to August 2025.
+• Projects include an Online Education Platform and a Company Website developed using various technologies including Java, Spring Boot, React.js, and more.
+• Education background includes a Bachelor of Computer Applications from Mohanlal Sukhadia University (2022 - 2025).
+• Technical skills cover programming languages, frontend and backend technologies, databases, tools and platforms, as well as CI/CD and DevOps concepts.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0eb866043bbf29" data-name="Pavan Sukhwal">Draft Reply</button></td>
+      </tr>
+      <tr data-score="40" data-name="saman bibi" data-skills="react.js, node.js, mongodb, rest apis, odoo" data-exp="1" data-cid="1a0e95840f13af4f">
+        <td>31</td>
+        <td><strong>Saman Bibi</strong><br><span class="muted">SamanKhan &lt;saman.k22333@gmail.com&gt;</span></td>
+        <td>Full stack Developer</td>
+        <td>1 year</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#dc2626">40</span></td>
+        <td>Junior Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> React.js, Node.js, MongoDB, REST APIs, Odoo</p>
+              <p><strong>Current Company:</strong> Tekyeka</p>
+              <p><strong>Education:</strong> BS Software Engineering, Islamia College University Peshawar (ICUP)</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>The candidate has experience as a full stack developer.</li><li>The candidate has developed web applications and is familiar with responsive design.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>PHP</li><li>Laravel</li><li>SQL</li><li>PostgreSQL</li><li>Psql</li><li>AI tools experience with a clear focus on them.</li></ul>
+              <p><strong>Summary:</strong> Experienced full stack developer focusing on MERN stack
+Developed responsive, user-friendly web interfaces
+Enjoy building clean, interactive UI components
+Skilled in integrating frontend and backend services
+Proficient in troubleshooting and maintaining web applications.</p>
+              <p><strong>Attachments:</strong> • Full-Stack Developer at Tekyeka with experience in developing automotive service marketplace applications.
+• Proficient in React.js, Node.js, Express.js, MongoDB, and REST APIs.
+• Developed platforms incorporating features such as service requests, mechanic discovery, and job tracking.
+• Implemented Odoo ERP solutions with requirement gathering, business process analysis, and testing.
+• Education: BS Software Engineering from Islamia College University Peshawar with a CGPA of 3.6/4.0.
+• Gold Merit Certificate for academic excellence and recognition from the Prime Minister&#39;s Youth Laptop Scheme.
+• Developed various projects including AI Image Processing Web Application using React.js and Python.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0e95840f13af4f" data-name="Saman Bibi">Draft Reply</button></td>
+      </tr>
+      <tr data-score="35" data-name="mustafa musab abdulkareem alhassan" data-skills="javascript, typescript, node.js, express.js, react, mongodb" data-exp="0" data-cid="1a0ec87d12f10dd7">
+        <td>32</td>
+        <td><strong>Mustafa Musab Abdulkareem Alhassan</strong><br><span class="muted">Mustafa Musab &lt;mustafamusab266@gmail.com&gt;</span></td>
+        <td>Full Stack Developer</td>
+        <td>0 months</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#dc2626">35</span></td>
+        <td>Junior Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> JavaScript, TypeScript, Node.js, Express.js, React, MongoDB</p>
+              <p><strong>Current Company:</strong> Not mentioned</p>
+              <p><strong>Education:</strong> Bachelor of Science in Computer Science, University of Sulaimani</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has full-stack development experience.</li><li>Candidate has some relevant educational background in Computer Science.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>Missing required skills: PHP, Laravel, SQL, PSQL, Postgres.</li><li>No relevant professional experience.</li><li>Projects do not align closely with required technology stack.</li></ul>
+              <p><strong>Summary:</strong> Computer Science graduate from the University of Sulaimani with a Very Good grade, ranking 2nd in class of 76 students.
+Junior Software Developer with hands-on experience in full-stack web development.
+Strong interest in backend development.
+Skilled in building RESTful APIs and database-driven web applications.
+Passionate about software engineering, problem-solving, and continuous learning.</p>
+              <p><strong>Attachments:</strong> Bachelor of Science in Computer Science from University of Sulaimani.
+Projects: 
+- Hotel Management System with AI Assistant: Full-stack system managing hotel operations, developed with Node.js, Express.js, TypeScript, and MongoDB, includes secure authentication and Google Gemini API integration.
+- Personal Website: Front-end practice with HTML, CSS, and JavaScript.
+- Task-Management-Project: Built with React.js, JavaScript, and Spring Boot, featuring a scalable database schema for task management.
+Certifications: 
+- CCNA: Introduction to Networks from Cisco.
+- McKinsey.org Forward Program.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0ec87d12f10dd7" data-name="Mustafa Musab Abdulkareem Alhassan">Draft Reply</button></td>
+      </tr>
+      <tr data-score="35" data-name="hindu kalthireddy" data-skills="mern stack, react.js, node.js, mongodb, aws" data-exp="3.2" data-cid="1a0eb5c297843ab4">
+        <td>33</td>
+        <td><strong>Hindu Kalthireddy</strong><br><span class="muted">Hindu kalthireddy &lt;hindukalthireddy30@gmail.com&gt;</span></td>
+        <td>Application for Full stack developer - immediately joining</td>
+        <td>3 years</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#dc2626">35</span></td>
+        <td>Junior Full-stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> MERN stack, React.js, Node.js, MongoDB, AWS</p>
+              <p><strong>Current Company:</strong> Globus Info Services Private Limited</p>
+              <p><strong>Education:</strong> B.Sc. in Biology — Vikrama Simhapuri University</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has experience in full-stack development.</li><li>Candidate&#39;s recent project involves AI tools.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>No experience with PHP, Laravel, SQL, PostgreSQL.</li><li>Experience does not align with the job focus on PHP and Laravel.</li><li>Lacks specific backend development experience with PostgreSQL databases.</li></ul>
+              <p><strong>Summary:</strong> Dedicated and performance-oriented Full-Stack Web Developer with 3.2+ years of experience.
+Expert in building scalable and responsive applications using the MERN stack.
+Experience in using modern JavaScript and developing modular micro-frontend solutions.
+Proficient in both frontend and backend technologies, with a strong focus on agile methodologies.</p>
+              <p><strong>Attachments:</strong> Resume attached: Hindu_Mern_Resume.pdf
+Professional Experience:
+- MERN Stack Developer at Globus Info Services since Jun 1, 2023.
+- Key project: FinBot - an AI-powered personal finance management web application.
+- Developed features using MERN stack, integrated RESTful APIs, optimized application performance with advanced techniques.
+- Contributed to various healthcare and banking platforms, implementing secure APIs, managing state with Redux Toolkit, and ensuring accessibility compliance.
+Education:
+- B.Sc. in Biology from Vikrama Simhapuri University, graduated in 2022.
+Skills:
+- Frontend: React.js, Next.js, Redux, JavaScript, TypeScript, HTML5, CSS3.
+- Backend: Node.js, Express.js, MongoDB, GraphQL.
+- DevOps: AWS, Docker, Jenkins.
+Methodologies: Agile/Scrum.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0eb5c297843ab4" data-name="Hindu Kalthireddy">Draft Reply</button></td>
+      </tr>
+      <tr data-score="35" data-name="kartik shrivastav" data-skills="react native, typescript, firebase, redux toolkit, rest apis" data-exp="1" data-cid="1a0e943ac7beea49">
+        <td>34</td>
+        <td><strong>Kartik Shrivastav</strong><br><span class="muted">KARTIK SHRIVASTAV &lt;kartik.shrivastav281@gmail.com&gt;</span></td>
+        <td>Application for Full Stack Developer (Remote) – Kartik Shrivastav</td>
+        <td>1 year</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#dc2626">35</span></td>
+        <td>Junior Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> React Native, TypeScript, Firebase, Redux Toolkit, REST APIs</p>
+              <p><strong>Current Company:</strong> Walkover</p>
+              <p><strong>Education:</strong> B.Tech in Computer Science and Engineering, Maulana Azad National Institute of Technology (MANIT) Bhopal, 2021 – 2025</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has experience in both frontend and backend development.</li><li>Candidate has worked with REST APIs.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>No mention of PHP or Laravel skills.</li><li>Missing experience with SQL, PSQL, or Postgres.</li><li>No experience with AI tools or relevant databases.</li></ul>
+              <p><strong>Summary:</strong> • Applying for Full Stack Developer position at Byte Spark.
+• 1 year of experience at Walkover from June 2025 – June 2026.
+• Built and shipped two production apps (50Agents, ViaSocket) using React Native and various technologies.
+• Experience with real-time chat systems, JWT-based authentication, and REST API integration.
+• Proven ability to work on both frontend and backend development.
+• Actively building backend skills and can join immediately.</p>
+              <p><strong>Attachments:</strong> • Resume attached detailing: 
+• Professional experience: 
+  - Walkover (June 2025 – June 2026): Software Development Engineer 
+    - 50Agents Mobile App: Integrated voice-to-text, built organization management system, implemented dynamic LLM switching, built real-time chat persistence, owned app releases.
+    - ViaSocket Mobile App: Architected app using Redux Toolkit, built Connections Management module, developed dynamic JSON workflows, implemented real-time profile sync.
+• Education: B.Tech in Computer Science and Engineering from MANIT Bhopal (2021 – 2025), CGPA: 7.0
+• Key projects: Car Repair Service Interface with REST API integration.
+• Technical Skills: React Native, TypeScript, Firebase, REST APIs, and more.
+• Awards: Solved 300+ DSA problems, HackerRank Certified, Team Lead experience.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0e943ac7beea49" data-name="Kartik Shrivastav">Draft Reply</button></td>
+      </tr>
+      <tr data-score="35" data-name="mohit garg" data-skills="c++, python, javascript, nodejs, rabbitmq" data-exp="1" data-cid="1a0e8d22fb2b6d99">
+        <td>35</td>
+        <td><strong>Mohit Garg</strong><br><span class="muted">Mohit Garg &lt;mohitgarg8910@gmail.com&gt;</span></td>
+        <td>Resume for Software Developer Position || Immediate Joiner</td>
+        <td>1 year</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#dc2626">35</span></td>
+        <td>Junior Software Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> C++, Python, JavaScript, NodeJS, RabbitMQ</p>
+              <p><strong>Current Company:</strong> InsuranceDekho</p>
+              <p><strong>Education:</strong> B.Tech in Computer Science from NIT Jalandhar</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>The candidate has relevant experience in software development.</li><li>The candidate&#39;s educational background is in Computer Science.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>Missing required skills: PHP, Laravel</li><li>No experience mentioned in full stack development</li><li>No SQL, PSQL, or Postgres experience mentioned</li><li>Lacks direct experience with AI tools specified in JD</li></ul>
+              <p><strong>Summary:</strong> • Interested in job opportunity for Software Developer Position
+• Currently working as an SDE-1 at InsuranceDekho
+• Developed a fault-tolerant payment and redemption workflow, processing ₹20Cr+ monthly
+• Built a dynamic commission calculation engine saving ₹13 lakhs in AWS costs annually
+• Created an AI code security and optimization engine achieving 75% API latency reduction
+• Secured 1st place in company-wide AI hackathon with an AI-powered visit planner
+• Available for immediate joining</p>
+              <p><strong>Attachments:</strong> • Resume attached with detailed information
+• Education: B.Tech in Computer Science and Engineering from NIT Jalandhar with CGPA: 8.1 / 10
+• Experience at InsuranceDekho (Feb 2025 – Present) with various projects including:
+  - AI-Powered Code Security and Optimization Engine.
+  - Fault-Tolerant Payment &amp; Redemption Workflow System for ₹20Cr+ processing.
+  - Dynamic Formula-Driven Commission Calculation Engine, reducing AWS costs by 17.6%.
+• Technical Skills: C++, Python, JavaScript, Golang, Java, ReactJS, NodeJS, MySQL, MongoDB, and use of tools like AWS, RabbitMQ.
+• Awards: Secured 1st position in a company-wide hackathon, ranked among the top 0.8% in JEE Mains.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0e8d22fb2b6d99" data-name="Mohit Garg">Draft Reply</button></td>
+      </tr>
+      <tr data-score="35" data-name="tasmih rob mow" data-skills="react.js, next.js, node.js, express.js, mongodb" data-exp="1" data-cid="1a0e8521b717a871">
+        <td>36</td>
+        <td><strong>Tasmih Rob Mow</strong><br><span class="muted">Tasmih Rob Mow &lt;tasmih.mow20@gmail.com&gt;</span></td>
+        <td>Application for Full Stack Developer Position</td>
+        <td>1 year</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#dc2626">35</span></td>
+        <td>Entry-level Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> React.js, Next.js, Node.js, Express.js, MongoDB</p>
+              <p><strong>Current Company:</strong> Not mentioned</p>
+              <p><strong>Education:</strong> Master of Pharmacy (M.Pharm) from State University of Bangladesh</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Familiar with AI-powered features</li><li>Experience in end-to-end development</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>PHP</li><li>Laravel</li><li>SQL</li><li>Postgres</li><li>Backend development specifically related to mentioned technologies</li></ul>
+              <p><strong>Summary:</strong> Applying for the Full Stack Developer position at Byte Spark.
+Hands-on experience building modern, responsive web applications.
+Skilled in various technologies like React.js, Next.js, Node.js, Express.js, MongoDB.
+Experience in developing applications involving authentication, dashboards, API integration.
+Familiar with AI-powered features and continuous learning mindset.</p>
+              <p><strong>Attachments:</strong> Resume detailing experience as a Full Stack Developer.
+Career Objective: Entry-level with experience in end-to-end development.
+Technical Skills: Frontend (HTML5, CSS3, React.js, Next.js), Backend (Node.js, Express.js, MongoDB), Languages (JavaScript, TypeScript), Tools (Git, GitHub).
+Selected Projects: FixMate (Home Service Marketplace), Fable (Ebook Publishing Platform), StudyPilot AI (AI Academic Companion).
+Education: Master of Pharmacy (M.Pharm), AI-Driven Full-Stack Web Engineering training.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0e8521b717a871" data-name="Tasmih Rob Mow">Draft Reply</button></td>
+      </tr>
+      <tr data-score="30" data-name="abhijeet patil" data-skills="javascript, typescript, node.js, react.js, rest apis" data-exp="0.58" data-cid="1a0ed4c51ead1be1">
+        <td>37</td>
+        <td><strong>Abhijeet Patil</strong><br><span class="muted">Abhijeet Patil &lt;abhijeetpatilhnl@gmail.com&gt;</span></td>
+        <td>Application for Full Stack Developer – Abhijeet Patil</td>
+        <td>7 months</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#dc2626">30</span></td>
+        <td>Junior Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> JavaScript, TypeScript, Node.js, React.js, REST APIs</p>
+              <p><strong>Current Company:</strong> SyncUp</p>
+              <p><strong>Education:</strong> Integrated B.Tech + M.Tech in Information Technology from Atal Bihari Vajpayee Indian Institute of Information Technology and Management (ABV-IIITM), Gwalior</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has full-stack development experience.</li><li>Candidate has experience with Node.js and some SQL knowledge.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>Missing PHP and Laravel experience.</li><li>No experience with PostgreSQL or psql.</li><li>No mention of AI tools beyond basic projects.</li></ul>
+              <p><strong>Summary:</strong> Abhijeet Patil is a recent graduate with a strong foundation in software development.
+Possesses 7 months of internship experience in software engineering roles.
+Skilled in full-stack development, including frontend and backend technologies.
+Has built several impactful and scalable applications during internships and academia.
+Excited about contributing to real-world product development and modern technologies.</p>
+              <p><strong>Attachments:</strong> EDUCATION:
+- Integrated (B.Tech + M.Tech) in Information Technology from Indian Institute of Information Technology and Management, Gwalior (2021–2026)
+
+WORK EXPERIENCE:
+- SyncUp (July 2025 – Sept 2025): Software Development Engineer (Backend) Intern
+  - Built scalable RESTful APIs using Node.js, Express, Prisma ORM, and MongoDB.
+  - Collaborated in Agile sprints to integrate backend services with frontend components.
+- Infotact Solutions (May 2025 – July 2025): Associate Software Developer Intern
+  - Developed 2 production MERN stack apps serving 2000+ users.
+
+PROJECTS:
+- TutorLens AI: Full-stack AI interview platform with LLM integrations.
+- AI-Powered RAG Platform: Document interaction platform using LangChain, ChromaDB.
+- Real-Time Tracking Application: Live tracking platform using Node.js, Express.js, Socket.IO.
+
+TECHNICAL SKILLS:
+- Languages: C, C++, Python, JavaScript, TypeScript, SQL.
+- Frameworks/Libraries: ReactJS, NextJS, NodeJS, ExpressJS.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0ed4c51ead1be1" data-name="Abhijeet Patil">Draft Reply</button></td>
+      </tr>
+      <tr data-score="30" data-name="priya chauhan" data-skills=".net core, asp.net, angular, aws, docker" data-exp="4" data-cid="1a0ec99abc666372">
+        <td>38</td>
+        <td><strong>Priya Chauhan</strong><br><span class="muted">Priya Chauhan &lt;priyachauhan1772002@gmail.com&gt;</span></td>
+        <td>Application for full stack developer</td>
+        <td>4 years</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#dc2626">30</span></td>
+        <td>Junior Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> .NET Core, ASP.NET, Angular, AWS, Docker</p>
+              <p><strong>Current Company:</strong> Matrix Comsec Pvt. Ltd.</p>
+              <p><strong>Education:</strong> Information Technology, Dharmsinh Desai University</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>The candidate has a background in full-stack development.</li><li>Candidate has experience with SQL, but it is SQL Server, not the required PostgreSQL.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>Missing PHP and Laravel skills</li><li>No experience mentioned with PostgreSQL or PSQL</li><li>Does not indicate experience with AI tools</li><li>Current technology stack is primarily .NET and Angular, which does not match JD requirements.</li></ul>
+              <p><strong>Summary:</strong> • Applying for software developer position
+• 4 years of experience in MVC, .NET Core, ASP.NET, Entity Framework, and SQL Server
+• Developed scalable web applications and APIs
+• Experience with Angular, ReactJS, WPF, and cloud deployment AWS
+• Modernized a legacy P2P signaling server to enable scalable communication
+• Implemented secure communication and data-protection mechanisms
+• Developed reusable SDKs and customer-facing product capabilities
+• Strong focus on building secure, high-performance systems</p>
+              <p><strong>Attachments:</strong> • Resume attached detailing experience as Software Development Engineer at Matrix Comsec Pvt. Ltd. from Jan 2023-Present
+• Developed backend and WCF services for IP video surveillance systems
+• Built full-stack features integrating Angular and .NET Core Web APIs
+• Implemented secure communication and addressed OWASP/STQC requirements
+• Worked on multiple system optimization tasks to improve performance and scalability
+• Education: Information Technology degree from Dharmsinh Desai University with CGPA 7.98</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0ec99abc666372" data-name="Priya Chauhan">Draft Reply</button></td>
+      </tr>
+      <tr data-score="30" data-name="rasel rana" data-skills="react.js, next.js, node.js, mongodb, express.js" data-exp="1" data-cid="1a0e8a41d8c8b0a1">
+        <td>39</td>
+        <td><strong>Rasel Rana</strong><br><span class="muted">Rasel Rana &lt;raselranar2005@gmail.com&gt;</span></td>
+        <td>Full Stack Developer Application - Rasel Rana</td>
+        <td>1 year</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#dc2626">30</span></td>
+        <td>Junior Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> React.js, Next.js, Node.js, MongoDB, Express.js</p>
+              <p><strong>Current Company:</strong> Not mentioned</p>
+              <p><strong>Education:</strong> Bachelor of Arts | Setabgonj Govt College | Graduated: 2025</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has full-stack development experience and is self-taught, indicating adaptability.</li><li>Experience with AI tools is relevant to the job description.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>Missing PHP and Laravel skills</li><li>No experience mentioned in SQL, PSQL, or Postgres databases</li><li>No backend experience specifically with PHP</li><li>No explicit mention of frontend technologies requested such as HTML/CSS beyond general skills</li></ul>
+              <p><strong>Summary:</strong> Self-taught full stack developer from Bangladesh applying for the Full Stack Developer position.
+Builds with React.js, Next.js, Node.js, Express, and MongoDB.
+Strong fundamentals in JavaScript, HTML, CSS, responsive design, Git/GitHub, and REST API design.
+Experience using AI tools in development workflow for debugging, code review, and feature building.
+Flagship project, HavenStay, is a full-stack rental platform with role-based access control and JWT authentication.
+Enjoys owning features from design to deployment and learning quickly while working independently with team communication.
+Available to start immediately.</p>
+              <p><strong>Attachments:</strong> Resume includes:
+Career Objective: Self-taught MERN and Next.js developer with hands-on experience building full-stack apps from scratch.
+Technical Skills: Frontend (HTML5, CSS3, JavaScript ES6+, TypeScript, React.js, Next.js), UI (Tailwind CSS, DaisyUI), Backend (Node.js, Express.js, MongoDB), Tools (Git, GitHub, Vercel, Netlify).
+Projects:
+- HavenStay: Full-stack rental platform with role-based access control and analytics dashboard.
+- IdeaVault: Startup idea sharing platform with nested reply system and multiple authentication flows.
+- SunCart: E-commerce platform with multi-device support and reusable components.
+Education: Bachelor of Arts from Setabgonj Govt College, graduated 2025.
+Certifications: Complete Web Development with MERN Stack, responsive web design, and JavaScript/React practice certificates.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0e8a41d8c8b0a1" data-name="Rasel Rana">Draft Reply</button></td>
+      </tr>
+      <tr data-score="30" data-name="sadikur rahman" data-skills="react, next.js, node.js, mongodb, express.js" data-exp="1" data-cid="1a0e878827816afc">
+        <td>40</td>
+        <td><strong>Sadikur Rahman</strong><br><span class="muted">Sadikur Rahman &lt;sadikur.r.sadik7@gmail.com&gt;</span></td>
+        <td>Applying for Full Stack Developer role</td>
+        <td>1 year</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#dc2626">30</span></td>
+        <td>Junior Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> React, Next.js, Node.js, MongoDB, Express.js</p>
+              <p><strong>Current Company:</strong> Byte Spark</p>
+              <p><strong>Education:</strong> Honors in English Literature – Leading University, Sylhet, 1st Year 2026 – Present</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has full-stack development experience.</li><li>Incorporates AI tools into workflow.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>PHP</li><li>Laravel</li><li>SQL</li><li>Postgres</li><li>Backend Development</li><li>Frontend Development</li><li>Database</li></ul>
+              <p><strong>Summary:</strong> Applying for Full Stack Developer role at Byte Spark.
+Experience includes building responsive user interfaces and secure backends.
+Technologies used: React, Next.js, Node.js, MongoDB, Express.js.
+Key projects: Idea Vault and BiblioDrop.
+Incorporates AI tools like ChatGPT and GitHub Copilot into workflow.
+Willing to contribute to both remote and on-site engineering teams.</p>
+              <p><strong>Attachments:</strong> Resume including the following details:
+- Technical Skills: JavaScript, TypeScript, HTML5, CSS3, React.js, Next.js, Tailwind CSS, Node.js, Express.js, MongoDB.
+- Projects:
+  - BiblioDrop: Multi-tenant book management platform with role-based dashboards, secure route guards, and Stripe integration.
+  - Idea Vault: Full-stack idea-sharing platform supporting real-time updates and secure endpoint access.
+  - Tiles Gallery: Interactive showroom with optimized loading and secure user spaces.
+- Training: Complete Web Development Course from Programming Hero (Jan 2026 – Jun 2026).
+- Education details including current study in Honors in English Literature at Leading University, Sylhet.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0e878827816afc" data-name="Sadikur Rahman">Draft Reply</button></td>
+      </tr>
+      <tr data-score="30" data-name="farhan sadiq" data-skills="next.js, react, typescript, node.js, express.js" data-exp="1" data-cid="1a0e86b86c4d5d83">
+        <td>41</td>
+        <td><strong>Farhan Sadiq</strong><br><span class="muted">Farhan Sadiq &lt;farhansadiq2021@gmail.com&gt;</span></td>
+        <td>Application for Full Stack Developer</td>
+        <td>1 year</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#dc2626">30</span></td>
+        <td>Junior Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> Next.js, React, TypeScript, Node.js, Express.js</p>
+              <p><strong>Current Company:</strong> Not mentioned</p>
+              <p><strong>Education:</strong> B.Sc. in Computer Science &amp; Engineering, American International University — Bangladesh</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has full stack development experience.</li><li>Candidate&#39;s projects involve modern web technologies.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>PHP not mentioned</li><li>Laravel not mentioned</li><li>SQL, PSQL, Postgres not mentioned</li><li>No relevant database experience stated</li><li>No direct experience with AI tools as per JD</li></ul>
+              <p><strong>Summary:</strong> Application for Full Stack Developer position at ByteSpark Innovations.
+Excited about building modern products with technology.
+1 year of hands-on experience in full-stack development.
+Strong skills in Next.js, React, TypeScript, Node.js, Express.js, and MongoDB.
+Built Nestly, an AI-powered real estate platform, and ResellHub, a marketplace with Stripe payments.
+Eager to contribute to ByteSpark Innovations&#39; goals and team growth.</p>
+              <p><strong>Attachments:</strong> Resume includes:
+- Career Objective: Dedicated Full Stack Developer with a focus on UI/UX design and component architecture.
+- Skills: C, C++, Python, JavaScript (ES6+), TypeScript, Next.js, React.js, Tailwind CSS, HTML5, CSS3, Node.js, Express.js, MongoDB, REST API, Stripe, Git, and more.
+- Projects:
+  - Nestly: An AI-powered real estate platform with property recommendation engine, document risk auditing, and role-based dashboards.
+  - ReSell Hub: A second-hand marketplace with authentication using BetterAuth and Stripe-integrated checkout.
+  - Drift: A second-hand car marketplace with a TypeScript codebase and cross-service authentication.
+- Education: Pursuing B.Sc. in Computer Science &amp; Engineering at AIUB with a CGPA of 3.67.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0e86b86c4d5d83" data-name="Farhan Sadiq">Draft Reply</button></td>
+      </tr>
+      <tr data-score="30" data-name="tahia mubin feya" data-skills="react.js, next.js, javascript, node.js, mongodb" data-exp="1" data-cid="1a0e8664743638ba">
+        <td>42</td>
+        <td><strong>Tahia Mubin Feya</strong><br><span class="muted">Tahia Mubin &lt;tahia.mubin1@gmail.com&gt;</span></td>
+        <td>Application for Full Stack Developer</td>
+        <td>1 year</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#dc2626">30</span></td>
+        <td>Entry-level Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> React.js, Next.js, JavaScript, Node.js, MongoDB</p>
+              <p><strong>Current Company:</strong> Not mentioned</p>
+              <p><strong>Education:</strong> Bachelor of Science in Computer Science, Leading University, Sylhet, Bangladesh (Expected 2029)</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has experience in full-stack development.</li><li>Familiarity with AI-assisted tools mentioned.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>PHP</li><li>Laravel</li><li>SQL</li><li>PostgreSQL</li><li>Any backend experience using technologies other than Node.js</li></ul>
+              <p><strong>Summary:</strong> Applying for Full Stack Developer position at ByteSpark Innovations
+Hands-on experience with various technologies and full-stack projects
+Built projects like FlexStack and Hawkin focusing on authentication, dashboards, and API integrations
+Strong practical experience despite being at an entry-level stage
+Comfortable with AI-assisted development tools for workflow improvement</p>
+              <p><strong>Attachments:</strong> CV contains detailed information about education and projects.
+EDUCATION
+- Bachelor of Science in Computer Science
+- Leading University, Sylhet, Bangladesh, 2025 – 2029 (Expected)
+- CGPA: 3.73 / 4.00
+
+TECHNICAL SKILLS
+- Languages: JavaScript, C
+- Frontend: React, Next.js, Tailwind CSS
+- Backend: Node.js, Express.js
+- Database: MongoDB
+- Tools &amp; Version Control: Git, GitHub
+- Interpersonal Skills: Communication, Teamwork, Problem-Solving, Adaptability
+
+PROJECTS
+- FlexStack: Full-Stack Gym Management Platform
+  - Role-based access control with JWT authentication
+  - Features: booking fitness classes, trainer applications, admin management
+  - Tech Stack: Next.js, Tailwind CSS, Node.js, Express.js, MongoDB
+
+- Hawkin: Full-Stack Pet Adoption Platform
+  - Features: pet browsing, filtering, adoption requests, secure authentication
+  - Tech Stack: Next.js, JavaScript, Tailwind CSS, Node.js, Express.js, MongoDB
+
+- KeenKeeper: Friendship Tracking &amp; Analytics App
+  - Features: friend management dashboard, interaction timeline, analytics dashboard
+  - Tech Stack: React, React Router, Recharts, Tailwind CSS</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0e8664743638ba" data-name="Tahia Mubin Feya">Draft Reply</button></td>
+      </tr>
+      <tr data-score="30" data-name="kanich fatema mou" data-skills="mongodb, express.js, react, node.js, javascript" data-exp="" data-cid="1a0e85f968bd1ed2">
+        <td>43</td>
+        <td><strong>Kanich Fatema Mou</strong><br><span class="muted">Mou Islam &lt;kanichfatema@outlook.com&gt;</span></td>
+        <td>Application for full stack position kanich fatema mou</td>
+        <td>Not specified</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#dc2626">30</span></td>
+        <td>Junior Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> MongoDB, Express.js, React, Node.js, JavaScript</p>
+              <p><strong>Current Company:</strong> Not mentioned</p>
+              <p><strong>Education:</strong> Diploma in Engineering, Computer Science, Rangpur Ideal Institute of Technology (RIIT), 7th Semester (Ongoing), Expected Completion: 2027</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Familiarity with full stack development using JavaScript technologies.</li><li>Experience in building full-stack applications.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>Missing PHP and Laravel skills.</li><li>No experience with SQL, PSQL, or Postgres.</li><li>No mention of AI tools in the technical skill set.</li></ul>
+              <p><strong>Summary:</strong> • Applying for full stack Developer position
+• Hands-on experience with MongoDB, Express.js, React, Node.js, JavaScript (ES6+), RESTful APIs, and Next.js
+• Built full-stack applications covering authentication, database integration, and API development
+• Seeking opportunities to contribute to innovative web development projects
+• Long-term goal to become a Data Scientist and AI Engineer</p>
+              <p><strong>Attachments:</strong> • CV attached detailing education and projects
+• Projects include BiblioDrop (Online Book Delivery), VoiceLingo (Voice-Based English Learning), and SkillPath AI (AI Career &amp; Study Mentor)
+• Skills in JavaScript, TypeScript, React, Next.js, Node.js, Express.js, and MongoDB
+• Details of projects including tech stack and key features implemented in each project</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0e85f968bd1ed2" data-name="Kanich Fatema Mou">Draft Reply</button></td>
+      </tr>
+      <tr data-score="25" data-name="suhira balarajan" data-skills="java, spring boot, react, aws, ci/cd" data-exp="0" data-cid="1a0eca9d4a2142e9">
+        <td>44</td>
+        <td><strong>Suhira Balarajan</strong><br><span class="muted">Suhira Balarajan &lt;balarajansuhira@gmail.com&gt;</span></td>
+        <td>Application for Full Stack Developer Position</td>
+        <td>0 months</td>
+        <td>-</td>
+        <td>-</td>
+        <td><span class="score-badge" style="background:#dc2626">25</span></td>
+        <td>Entry-level Full Stack Developer</td>
+        <td>
+          <details><summary>View</summary>
+            <div class="detail-block">
+              <p><strong>Skills:</strong> Java, Spring Boot, React, AWS, CI/CD</p>
+              <p><strong>Current Company:</strong> Smartzi Lanka</p>
+              <p><strong>Education:</strong> BSc Hons in Information Technology from University of Moratuwa</p>
+              <p><strong>Match Reasons:</strong></p>
+              <ul><li>Candidate has some full stack development experience.</li><li>Candidate developed AI-powered applications which aligns with JD&#39;s requirement for AI tools.</li></ul>
+              <p><strong>Gaps:</strong></p>
+              <ul><li>Missing required skills: PHP, Laravel, SQL, PSQL, Postgres, database development.</li><li>No relevant professional experience in PHP or Laravel.</li><li>Lacks the total experience required as the candidate has 0 years.</li></ul>
+              <p><strong>Summary:</strong> • Recent BSc (Hons) graduate in Information Technology with hands-on experience in full-stack development.
+• Internship at Smartzi Lanka involved backend development for a UK-based B2B platform.
+• Proficient in Spring Boot, REST APIs, and modern DevOps practices.
+• Developed AI-powered applications and emphasizes practical solutions and continuous learning.
+• Available for immediate employment and eager to contribute to a remote team.</p>
+              <p><strong>Attachments:</strong> • CV includes detailed employment history and technical skills.
+• Education: BSc Hons in Information Technology from University of Moratuwa, CGPA: 3.49/4.0.
+• Projects include: 
+  - Labor Hiring System: Collaborated with AlphaCodes Technologies, using React, MUI, and Spring Boot.
+  - CellMate: AI-powered RAG study assistant developed with FastAPI and Google Gemini API.
+  - Career Compass AI: End-to-end AI career copilot utilizing various advanced technologies.
+• Technical Skills: Java, Python, TypeScript, AWS, CI/CD, React.js, Spring Boot, FastAPI.
+• Leadership roles in university organizations and previous certifications in AWS and web development.</p>
+            </div>
+          </details>
+        </td>
+        <td><button class="draft-btn" data-cid="1a0eca9d4a2142e9" data-name="Suhira Balarajan">Draft Reply</button></td>
+      </tr>
+  </tbody>
+</table>
+
+<!-- Draft Reply Modal -->
+<div class="modal-overlay" id="draftModal">
+  <div class="modal">
+    <h2 id="modalTitle">Draft Reply</h2>
+    <div class="modal-info" id="modalInfo"></div>
+    <label><strong>Your Instructions:</strong></label>
+    <textarea class="instructions" id="instructionsInput" placeholder="e.g. Schedule an interview next Tuesday at 3pm. Ask them to confirm."></textarea>
+    <button class="btn-generate" id="generateBtn">Generate Draft</button>
+    <div id="statusMsg"></div>
+    <label><strong>Draft (editable):</strong></label>
+    <textarea class="draft-preview" id="draftPreview" placeholder="Draft will appear here after you click Generate..."></textarea>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="cancelBtn">Cancel</button>
+      <button class="btn-send" id="sendBtn" disabled>Send Reply</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // --- Filters ---
+  const scoreFilter = document.getElementById('scoreFilter');
+  const scoreVal = document.getElementById('scoreVal');
+  const searchFilter = document.getElementById('searchFilter');
+  const sortBy = document.getElementById('sortBy');
+  const visibleCount = document.getElementById('visibleCount');
+  const tbody = document.querySelector('#rankTable tbody');
+  const tableRows = Array.from(tbody.querySelectorAll('tr'));
+
+  function applyFilters() {
+    const minScore = parseInt(scoreFilter.value, 10);
+    const q = searchFilter.value.toLowerCase().trim();
+    let shown = 0;
+    let visibleRows = [];
+    tableRows.forEach(r => {
+      const score = parseInt(r.dataset.score, 10);
+      const name = r.dataset.name || '';
+      const skills = r.dataset.skills || '';
+      const matchesScore = score >= minScore;
+      const matchesQuery = !q || name.includes(q) || skills.includes(q);
+      if (matchesScore && matchesQuery) { visibleRows.push(r); shown++; }
+      else { r.style.display = 'none'; }
+    });
+    visibleRows.sort((a, b) => {
+      if (sortBy.value === 'score') return parseInt(b.dataset.score,10) - parseInt(a.dataset.score,10);
+      if (sortBy.value === 'exp') return (parseFloat(b.dataset.exp) || -1) - (parseFloat(a.dataset.exp) || -1);
+      if (sortBy.value === 'name') return (a.dataset.name || '').localeCompare(b.dataset.name || '');
+      return 0;
+    });
+    visibleRows.forEach((r, i) => {
+      r.style.display = '';
+      r.querySelector('td').textContent = i + 1;
+    });
+    visibleCount.textContent = shown + ' of ' + tableRows.length + ' shown';
+  }
+
+  scoreFilter.addEventListener('input', () => { scoreVal.textContent = scoreFilter.value; applyFilters(); });
+  searchFilter.addEventListener('input', applyFilters);
+  sortBy.addEventListener('change', applyFilters);
+  applyFilters();
+
+  // --- Draft Modal ---
+  const modal = document.getElementById('draftModal');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalInfo = document.getElementById('modalInfo');
+  const instructionsInput = document.getElementById('instructionsInput');
+  const generateBtn = document.getElementById('generateBtn');
+  const draftPreview = document.getElementById('draftPreview');
+  const sendBtn = document.getElementById('sendBtn');
+  const cancelBtn = document.getElementById('cancelBtn');
+  const statusMsg = document.getElementById('statusMsg');
+  let currentCid = null;
+
+  function showStatus(msg, type) {
+    statusMsg.textContent = msg;
+    statusMsg.className = 'status-msg ' + type;
+  }
+
+  function openModal(cid, name) {
+    currentCid = cid;
+    modalTitle.textContent = 'Draft Reply to ' + name;
+    modalInfo.textContent = 'Candidate ID: ' + cid;
+    instructionsInput.value = '';
+    draftPreview.value = '';
+    sendBtn.disabled = true;
+    showStatus('', '');
+    modal.classList.add('active');
+  }
+
+  function closeModal() {
+    modal.classList.remove('active');
+    currentCid = null;
+  }
+
+  // Attach Draft Reply buttons
+  document.querySelectorAll('.draft-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      openModal(btn.dataset.cid, btn.dataset.name);
+    });
+  });
+
+  cancelBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+  // Generate Draft
+  generateBtn.addEventListener('click', async () => {
+    const instructions = instructionsInput.value.trim();
+    if (!instructions) { showStatus('Please enter instructions for the draft.', 'error'); return; }
+    generateBtn.classList.add('btn-loading');
+    generateBtn.textContent = 'Generating...';
+    showStatus('Generating draft via LLM...', 'info');
+    try {
+      const res = await fetch('http://localhost:' + 3001 + '/api/draft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ candidateId: currentCid, instructions })
+      });
+      const data = await res.json();
+      if (data.success) {
+        draftPreview.value = data.draftText;
+        sendBtn.disabled = false;
+        showStatus('Draft generated. Review and edit above, then click Send.', 'success');
+      } else {
+        showStatus('Error: ' + (data.error || 'Unknown error'), 'error');
+      }
+    } catch (err) {
+      showStatus('Network error: ' + err.message, 'error');
+    }
+    generateBtn.classList.remove('btn-loading');
+    generateBtn.textContent = 'Generate Draft';
+  });
+
+  // Send Reply
+  sendBtn.addEventListener('click', async () => {
+    const draftText = draftPreview.value.trim();
+    if (!draftText) { showStatus('Draft is empty.', 'error'); return; }
+    sendBtn.classList.add('btn-loading');
+    sendBtn.textContent = 'Sending...';
+    showStatus('Sending email via Gmail...', 'info');
+    try {
+      const res = await fetch('http://localhost:' + 3001 + '/api/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ candidateId: currentCid, draftText })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showStatus('Email sent successfully!', 'success');
+        // Mark button as sent
+        const btn = document.querySelector('.draft-btn[data-cid="' + currentCid + '"]');
+        if (btn) { btn.textContent = 'Sent'; btn.classList.add('sent'); btn.disabled = true; }
+        setTimeout(closeModal, 1500);
+      } else {
+        showStatus('Error: ' + (data.error || 'Unknown error'), 'error');
+      }
+    } catch (err) {
+      showStatus('Network error: ' + err.message, 'error');
+    }
+    sendBtn.classList.remove('btn-loading');
+    sendBtn.textContent = 'Send Reply';
+  });
+</script>
+</body>
+</html>

@@ -1,12 +1,17 @@
 const axios = require("axios");
+const { withRetry, sleep } = require("./http-utils");
+
+const MODEL = process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini";
+// Delay between LLM calls to stay under rate limits (ms)
+const CALL_DELAY = parseInt(process.env.LLM_CALL_DELAY_MS || "500", 10);
 
 async function analyzeEmail(text) {
   try {
-    const res = await axios.post(
+    await sleep(CALL_DELAY);
+    const res = await withRetry(() => axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
-        // Using deepseek as it is very cheap, but you can swap to mistral or gpt-4o-mini
-        model: process.env.OPENROUTER_MODEL || "qwen/qwen-2.5-72b-instruct",
+        model: MODEL,
         messages: [
           {
             role: "system",
@@ -18,7 +23,7 @@ Return STRICT JSON format:
   "isRelevant": true or false,
   "category": "Job Application" or "Client Message" or "Other",
   "name": "Candidate's full name. Look in the subject line, email address, body, or signature (do not default to 'Not mentioned' if you can find it)",
-  "total_experience": "Infer total experience. If they worked since a specific date (e.g. 2016), calculate years of experience relative to 2026 (e.g. '10 years')",
+  "total_experience": "Infer total experience. If they worked since a specific date (e.g. 2016), calculate years of experience relative to ${new Date().getFullYear()} (e.g. '10 years')",
   "current_company": "Current or most recent company name. Look in body and attachments.",
   "education": "Highest degree and college. Look in body and attachments.",
   "primary_skills": "Top 3-5 keywords/technologies separated by commas.",
@@ -36,22 +41,23 @@ Return STRICT JSON format:
           "Content-Type": "application/json"
         }
       }
-    );
+    ));
 
     const raw = res.data.choices[0].message.content;
     return JSON.parse(raw);
   } catch (err) {
     console.error("❌ LLM Analyze ERROR:", err.message);
-    return { isRelevant: false };
+    return { isRelevant: false, _error: true };
   }
 }
 
 async function generateDraft(emailContext, userInstruction) {
   try {
-    const res = await axios.post(
+    await sleep(CALL_DELAY);
+    const res = await withRetry(() => axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
-        model: process.env.OPENROUTER_MODEL || "qwen/qwen-2.5-72b-instruct",
+        model: MODEL,
         messages: [
           {
             role: "system",
@@ -69,7 +75,7 @@ async function generateDraft(emailContext, userInstruction) {
           "Content-Type": "application/json"
         }
       }
-    );
+    ));
 
     return res.data.choices[0].message.content.trim();
   } catch (err) {
